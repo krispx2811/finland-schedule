@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
-  "notes": "Weekend salesman now rotates fairly by who has worked the fewest Fri/Sat shifts (no more repeats/duplicates).",
+  "version": "1.0.9",
+  "notes": "Updates now reliably close and reopen the app on their own.",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
