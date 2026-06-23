@@ -87,7 +87,8 @@ def export_schedule_pdf(schedule_id: int, filepath: str):
         fontSize=10, alignment=TA_CENTER, spaceAfter=8 * mm
     )
 
-    elements.append(Paragraph("Finland Optical Center - Weekly Schedule", title_style))
+    business = db.get_setting("business_name", "Finland Optical")
+    elements.append(Paragraph(f"{business} - Weekly Schedule", title_style))
     elements.append(Paragraph(
         f"{schedule.week_start} to {schedule.week_end}", subtitle_style
     ))

@@ -56,7 +56,8 @@ def export_schedule_excel(schedule_id, filepath):
 
     # Title row
     ws.merge_cells('A1:H1')
-    ws['A1'] = f"Finland Optical Center — {schedule.week_start} to {schedule.week_end}"
+    business = db.get_setting("business_name", "Finland Optical")
+    ws['A1'] = f"{business} — {schedule.week_start} to {schedule.week_end}"
     ws['A1'].font = Font(bold=True, size=14)
     ws['A1'].alignment = Alignment(horizontal='center')
 
