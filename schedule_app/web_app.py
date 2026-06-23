@@ -441,6 +441,14 @@ def api_admin_backup():
 
 
 DEFAULT_BUSINESS_NAME = "Finland Optical"
+DEFAULT_ACCENT = "#6366f1"
+
+
+def _current_settings():
+    return {
+        "business_name": db.get_setting("business_name", DEFAULT_BUSINESS_NAME),
+        "accent_color": db.get_setting("accent_color", DEFAULT_ACCENT),
+    }
 
 
 @app.route("/api/admin/check-update")
@@ -466,9 +474,7 @@ def api_download_update():
 
 @app.route("/api/settings")
 def api_get_settings():
-    return jsonify({
-        "business_name": db.get_setting("business_name", DEFAULT_BUSINESS_NAME),
-    })
+    return jsonify(_current_settings())
 
 
 @app.route("/api/settings", methods=["POST"])
@@ -477,8 +483,12 @@ def api_set_settings():
     if "business_name" in data:
         name = (data.get("business_name") or "").strip() or DEFAULT_BUSINESS_NAME
         db.set_setting("business_name", name)
-    return jsonify({"success": True,
-                    "business_name": db.get_setting("business_name", DEFAULT_BUSINESS_NAME)})
+    if "accent_color" in data:
+        color = (data.get("accent_color") or "").strip() or DEFAULT_ACCENT
+        db.set_setting("accent_color", color)
+    result = {"success": True}
+    result.update(_current_settings())
+    return jsonify(result)
 
 
 # ==================== DASHBOARD API ====================

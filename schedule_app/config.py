@@ -29,9 +29,6 @@ DEFAULT_SHIFTS = [
 
 # Default locations (name, short_code, min_staff, max_staff)
 DEFAULT_LOCATIONS = [
-    ("MOO", "MOO", 2, 3),
-    ("MGM", "MGM", 2, 4),
-    ("SCC", "SCC", 2, 3),
     ("Avenues", "AV", 2, 3),
     ("CCC", "CCC", 1, 2),
     ("QCC", "QCC", 2, 3),
@@ -72,9 +69,6 @@ OVERTIME_THRESHOLD_HOURS = 45
 
 # Location code mappings (Excel uses short codes)
 LOCATION_CODE_MAP = {
-    "MOO": "MOO",
-    "MGM": "MGM",
-    "SCC": "SCC",
     "AV": "Avenues",
     "CCC": "CCC",
     "QCC": "QCC",

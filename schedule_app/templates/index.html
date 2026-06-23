@@ -9,6 +9,7 @@
     <style>
         /* ---- CSS Custom Properties for Dark Mode ---- */
         :root {
+            --accent: #6366f1;
             --bg: #f0f2f5;
             --text: #1a1a2e;
             --card-bg: #fff;
@@ -117,7 +118,7 @@
         }
 
         .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .nav-item.active { background: rgba(99,102,241,0.25); color: #fff; }
+        .nav-item.active { background: color-mix(in srgb, var(--accent) 25%, transparent); color: #fff; }
         .nav-item i { width: 20px; text-align: center; font-size: 15px; }
 
         .sidebar-footer {
@@ -205,10 +206,10 @@
         }
 
         .btn-primary {
-            background: #6366f1;
+            background: var(--accent);
             color: #fff;
         }
-        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+        .btn-primary:hover { background: color-mix(in srgb, var(--accent), #000 12%); transform: translateY(-1px); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent); }
 
         .btn-success {
             background: #10b981;
@@ -283,8 +284,8 @@
 
         .search-input:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
         }
 
         .search-wrapper {
@@ -595,8 +596,8 @@
 
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
         }
 
         /* ---- Page Sections ---- */
@@ -634,7 +635,7 @@
 
         .stat-card .stat-icon {
             font-size: 20px;
-            color: #6366f1;
+            color: var(--accent);
             margin-bottom: 10px;
         }
 
@@ -741,7 +742,7 @@
         }
 
         .view-toggle button.active {
-            background: #6366f1;
+            background: var(--accent);
             color: #fff;
         }
 
@@ -908,8 +909,8 @@
         }
 
         .schedule-table tbody td.drag-over {
-            background: rgba(99,102,241,0.15) !important;
-            outline: 2px dashed #6366f1;
+            background: color-mix(in srgb, var(--accent) 15%, transparent) !important;
+            outline: 2px dashed var(--accent);
             outline-offset: -2px;
         }
 
@@ -942,7 +943,7 @@
         .hours-bar-fill {
             height: 100%;
             border-radius: 4px;
-            background: #6366f1;
+            background: var(--accent);
             transition: width 0.3s;
         }
 
@@ -956,10 +957,10 @@
 <body>
 
 <!-- Update banner -->
-<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#6366f1;color:#fff;padding:10px 18px;align-items:center;justify-content:center;gap:14px;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.25)">
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--accent);color:#fff;padding:10px 18px;align-items:center;justify-content:center;gap:14px;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.25)">
     <i class="fas fa-arrow-circle-up"></i>
     <span id="update-banner-text">A new version is available.</span>
-    <button class="btn" style="background:#fff;color:#6366f1;font-weight:600" onclick="downloadUpdate(this)">Download &amp; Install</button>
+    <button class="btn" style="background:#fff;color:var(--accent);font-weight:600" onclick="downloadUpdate(this)">Download &amp; Install</button>
     <button class="btn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)" onclick="document.getElementById('update-banner').style.display='none'">Later</button>
 </div>
 
@@ -1008,7 +1009,7 @@
     <!-- ======= SCHEDULE PAGE ======= -->
     <div id="page-schedule" class="page active">
         <div class="topbar">
-            <h2><i class="fas fa-calendar-alt" style="color:#6366f1;margin-right:8px"></i> Weekly Schedule</h2>
+            <h2><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:8px"></i> Weekly Schedule</h2>
             <div class="topbar-actions">
                 <button class="btn btn-outline" onclick="showHistory()"><i class="fas fa-clock"></i> History</button>
                 <button class="btn btn-outline" onclick="showSwaps()" id="btn-swaps"><i class="fas fa-exchange-alt"></i> Swaps <span id="swap-badge" class="count-badge" style="display:none">0</span></button>
@@ -1047,31 +1048,15 @@
                     </div>
                 </div>
             </div>
-            <!-- Color Legend -->
-            <div class="color-legend" id="color-legend">
-                <div class="legend-item"><div class="legend-swatch" style="background:#991b1b"></div>MOO</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#fff200"></div>MGM</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#831843"></div>SCC</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#fed7aa"></div>Avenues</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#d1fae5"></div>CCC</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#dbeafe"></div>QCC</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#c8940a"></div>Salalah</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#e9d5ff"></div>Nizwa</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#e5e7eb"></div>OFF</div>
-                <div class="legend-item"><div class="legend-swatch" style="background:#fef3c7"></div>Leave</div>
-                <div style="margin-left:auto;font-size:11px;color:#6b7280;display:flex;gap:12px">
-                    <span><i class="fas fa-clock" style="color:#6366f1"></i> Open: 10 AM</span>
-                    <span><i class="fas fa-moon" style="color:#6366f1"></i> Sat-Wed: Close 10 PM</span>
-                    <span><i class="fas fa-star" style="color:#c8940a"></i> Thu-Fri: Close 12 AM</span>
-                </div>
-            </div>
+            <!-- Color Legend (built dynamically from your locations + shifts) -->
+            <div class="color-legend" id="color-legend"></div>
         </div>
     </div>
 
     <!-- ======= STAFF PAGE ======= -->
     <div id="page-staff" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-users" style="color:#6366f1;margin-right:8px"></i> Staff Management</h2>
+            <h2><i class="fas fa-users" style="color:var(--accent);margin-right:8px"></i> Staff Management</h2>
             <div class="topbar-actions">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
@@ -1104,7 +1089,7 @@
     <!-- ======= LOCATIONS PAGE ======= -->
     <div id="page-locations" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-store" style="color:#6366f1;margin-right:8px"></i> Locations / Shops</h2>
+            <h2><i class="fas fa-store" style="color:var(--accent);margin-right:8px"></i> Locations / Shops</h2>
             <div class="topbar-actions">
                 <button class="btn btn-primary" onclick="showAddLocationModal()"><i class="fas fa-plus"></i> Add Location</button>
             </div>
@@ -1131,7 +1116,7 @@
     <!-- ======= SHIFTS PAGE ======= -->
     <div id="page-shifts" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-clock" style="color:#6366f1;margin-right:8px"></i> Shifts</h2>
+            <h2><i class="fas fa-clock" style="color:var(--accent);margin-right:8px"></i> Shifts</h2>
             <div class="topbar-actions">
                 <button class="btn btn-primary" onclick="showAddShiftModal()"><i class="fas fa-plus"></i> Add Shift</button>
             </div>
@@ -1156,7 +1141,7 @@
     <!-- ======= SETTINGS PAGE ======= -->
     <div id="page-settings" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-cog" style="color:#6366f1;margin-right:8px"></i> Settings</h2>
+            <h2><i class="fas fa-cog" style="color:var(--accent);margin-right:8px"></i> Settings</h2>
         </div>
         <div class="content">
             <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
@@ -1168,6 +1153,18 @@
                         <input type="text" id="business-name-input" placeholder="e.g. Finland Optical">
                     </div>
                     <button class="btn btn-primary" onclick="saveBusinessName()"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+
+            <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
+                <h3 style="margin-bottom:6px">Theme color</h3>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Pick a color for buttons, highlights and icons. Pick a preset or choose your own.</p>
+                <div id="color-presets" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                    <label style="font-size:13px">Custom:</label>
+                    <input type="color" id="accent-picker" value="#6366f1" style="width:48px;height:34px;border:none;background:none;cursor:pointer">
+                    <button class="btn btn-primary" onclick="saveAccentFromPicker()"><i class="fas fa-save"></i> Save color</button>
+                    <button class="btn btn-outline" onclick="saveAccent('#6366f1')">Reset to default</button>
                 </div>
             </div>
 
@@ -1217,7 +1214,7 @@
     <!-- ======= LEAVE PAGE ======= -->
     <div id="page-leave" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-plane-departure" style="color:#6366f1;margin-right:8px"></i> Leave Management</h2>
+            <h2><i class="fas fa-plane-departure" style="color:var(--accent);margin-right:8px"></i> Leave Management</h2>
         </div>
         <div class="content">
             <!-- Request Leave Form -->
@@ -1279,7 +1276,7 @@
     <!-- ======= DASHBOARD PAGE ======= -->
     <div id="page-dashboard" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-chart-bar" style="color:#6366f1;margin-right:8px"></i> Dashboard</h2>
+            <h2><i class="fas fa-chart-bar" style="color:var(--accent);margin-right:8px"></i> Dashboard</h2>
             <div class="topbar-actions">
                 <select id="dashboard-schedule-select" onchange="loadDashboard()" style="padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;min-width:200px;background:var(--input-bg);color:var(--input-text)">
                     <option value="">Select a schedule...</option>
@@ -1296,7 +1293,7 @@
 
             <!-- Staff Hours Table -->
             <div class="card" style="margin-bottom:24px">
-                <div class="card-header"><h3><i class="fas fa-user-clock" style="margin-right:8px;color:#6366f1"></i> Staff Hours</h3></div>
+                <div class="card-header"><h3><i class="fas fa-user-clock" style="margin-right:8px;color:var(--accent)"></i> Staff Hours</h3></div>
                 <table class="data-table">
                     <thead><tr><th>Staff Name</th><th>Hours This Week</th></tr></thead>
                     <tbody id="dashboard-hours-body"></tbody>
@@ -1305,7 +1302,7 @@
 
             <!-- Fairness Report -->
             <div class="card" style="margin-bottom:24px">
-                <div class="card-header"><h3><i class="fas fa-balance-scale" style="margin-right:8px;color:#6366f1"></i> Fairness Report</h3></div>
+                <div class="card-header"><h3><i class="fas fa-balance-scale" style="margin-right:8px;color:var(--accent)"></i> Fairness Report</h3></div>
                 <table class="data-table">
                     <thead><tr><th>Staff Name</th><th>Fridays Worked</th><th>Weekends Worked</th><th>Off Days</th></tr></thead>
                     <tbody id="fairness-body"></tbody>
@@ -1314,7 +1311,7 @@
 
             <!-- Location Coverage Grid -->
             <div class="card">
-                <div class="card-header"><h3><i class="fas fa-map-marked-alt" style="margin-right:8px;color:#6366f1"></i> Location Coverage</h3></div>
+                <div class="card-header"><h3><i class="fas fa-map-marked-alt" style="margin-right:8px;color:var(--accent)"></i> Location Coverage</h3></div>
                 <div id="coverage-grid" style="padding:16px;overflow-x:auto"></div>
             </div>
         </div>
@@ -1323,7 +1320,7 @@
     <!-- ======= REPORTS PAGE ======= -->
     <div id="page-reports" class="page">
         <div class="topbar">
-            <h2><i class="fas fa-chart-line" style="color:#6366f1;margin-right:8px"></i> Reports &amp; Analytics</h2>
+            <h2><i class="fas fa-chart-line" style="color:var(--accent);margin-right:8px"></i> Reports &amp; Analytics</h2>
             <div class="topbar-actions">
                 <input type="month" id="report-month" onchange="loadMonthlyReport()" style="padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--input-bg);color:var(--input-text)">
                 <button class="btn btn-primary" onclick="loadMonthlyReport()"><i class="fas fa-sync"></i> Load Report</button>
@@ -1331,7 +1328,7 @@
         </div>
         <div class="content">
             <div class="card">
-                <div class="card-header"><h3><i class="fas fa-table" style="margin-right:8px;color:#6366f1"></i> Monthly Report</h3></div>
+                <div class="card-header"><h3><i class="fas fa-table" style="margin-right:8px;color:var(--accent)"></i> Monthly Report</h3></div>
                 <div style="overflow-x:auto">
                     <table class="data-table" id="report-table">
                         <thead>
@@ -1493,6 +1490,7 @@ async function loadScheduleList() {
     allLocations = locs;
     allStaff = staff;
     allShifts = await api('/api/shifts');
+    updateLegend();
 
     document.getElementById('stats-row').innerHTML = `
         <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">${staff.filter(s=>s.is_active).length}</div><div class="stat-label">Active Staff</div></div>
@@ -1552,6 +1550,7 @@ async function loadStaffView() {
 }
 
 function buildScheduleTable(data) {
+    rebuildLocColors();
     const totalStaff = data.staff ? data.staff.length : 0;
     const workingPerDay = new Array(7).fill(0);
 
@@ -1565,11 +1564,12 @@ function buildScheduleTable(data) {
             const d = s.days[String(i)];
             if (d) {
                 const cls = getCellClass(d);
+                const cstyle = getCellStyle(d);
                 const duration = (d.status === 'assigned' || (d.status !== 'off' && d.status !== 'leave')) ? getShiftDuration(d.shift) : '';
                 if (d.status !== 'off' && d.status !== 'leave') {
                     workingPerDay[i]++;
                 }
-                html += `<td draggable="true" data-assignment-id="${d.id}" data-staff-name="${s.name}" data-day-date="${d.day_date}" data-status="${d.status}" data-location="${d.location || ''}" data-shift="${d.shift || ''}" data-day-index="${i}" onclick="editCell(${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')" oncontextmenu="showContextMenu(event, ${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')"><span class="cell-badge ${cls}">${d.text || '-'}${duration ? '<span class="cell-duration">' + duration + '</span>' : ''}</span></td>`;
+                html += `<td draggable="true" data-assignment-id="${d.id}" data-staff-name="${s.name}" data-day-date="${d.day_date}" data-status="${d.status}" data-location="${d.location || ''}" data-shift="${d.shift || ''}" data-day-index="${i}" onclick="editCell(${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')" oncontextmenu="showContextMenu(event, ${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')"><span class="cell-badge ${cls}" style="${cstyle}">${d.text || '-'}${duration ? '<span class="cell-duration">' + duration + '</span>' : ''}</span></td>`;
             } else {
                 html += '<td>-</td>';
             }
@@ -1640,43 +1640,31 @@ async function loadTimingsView() {
     const data = await api('/api/schedule/' + currentScheduleId + '/by-location');
     const days = data.days || ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
 
-    // Branch color map
-    const branchColors = {
-        'MOO': {bg:'#991b1b', fg:'#fff'},
-        'MGM': {bg:'#fff200', fg:'#333'},
-        'SCC': {bg:'#831843', fg:'#fff'},
-        'AV': {bg:'#fed7aa', fg:'#9a3412'},
-        'CCC': {bg:'#d1fae5', fg:'#065f46'},
-        'QCC': {bg:'#dbeafe', fg:'#1e40af'},
-        'SALALAH': {bg:'#c8940a', fg:'#fff'},
-        'NIZWA': {bg:'#e9d5ff', fg:'#6b21a8'},
-        'Clinic': {bg:'#dbeafe', fg:'#1e40af'},
-        'Office': {bg:'#d1fae5', fg:'#065f46'}
-    };
-
-    // Shift time order for sorting
-    const shiftOrder = {'10-7':1, '11:30-8:30':2, '12-9':3, '1-10':4, '2-11':5, '3-12':6};
-    const shiftTimes = {
-        '10-7': '10:00 AM - 7:00 PM',
-        '11:30-8:30': '11:30 AM - 8:30 PM',
-        '12-9': '12:00 PM - 9:00 PM',
-        '1-10': '1:00 PM - 10:00 PM',
-        '2-11': '2:00 PM - 11:00 PM',
-        '3-12': '3:00 PM - 12:00 AM'
-    };
+    rebuildLocColors();
+    // Build shift ordering + time labels from the actual shifts (no hard-coded times).
+    const sortedShifts = (allShifts || []).slice().sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+    const shiftOrder = {};
+    const shiftTimes = {};
+    sortedShifts.forEach((s, i) => {
+        shiftOrder[s.label] = i + 1;
+        shiftTimes[s.label] = (s.start_time && s.end_time) ? `${to12h(s.start_time)} - ${to12h(s.end_time)}` : '';
+    });
+    const bounds = shiftBounds();
 
     let html = '<div style="padding:16px">';
-    html += '<div style="display:flex;gap:8px;margin-bottom:16px;font-size:12px;color:#6b7280">';
-    html += '<span><i class="fas fa-clock" style="color:#6366f1"></i> Open: 10:00 AM</span>';
-    html += '<span style="margin-left:12px"><i class="fas fa-moon"></i> Sat-Wed: Close 10:00 PM</span>';
-    html += '<span style="margin-left:12px"><i class="fas fa-star" style="color:#c8940a"></i> Thu-Fri: Close 12:00 AM</span>';
-    html += '</div>';
+    if (bounds) {
+        html += '<div style="display:flex;gap:8px;margin-bottom:16px;font-size:12px;color:#6b7280">';
+        html += `<span><i class="fas fa-clock" style="color:var(--accent)"></i> Open: ${bounds.open}</span>`;
+        html += `<span style="margin-left:12px"><i class="fas fa-moon"></i> Close: ${bounds.close}</span>`;
+        html += '</div>';
+    }
 
     if (data.locations) {
         data.locations.forEach(loc => {
-            const colors = branchColors[loc.code] || {bg:'#eef2ff', fg:'#3730a3'};
+            const bg = locColorMap[String(loc.code).toUpperCase()] || locColorMap[String(loc.name).toUpperCase()] || '#6366f1';
+            const fg = textOn(bg);
             html += `<div class="card" style="margin-bottom:16px">`;
-            html += `<div style="padding:12px 16px;background:${colors.bg};color:${colors.fg};border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center">`;
+            html += `<div style="padding:12px 16px;background:${bg};color:${fg};border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center">`;
             html += `<h3 style="font-size:15px;font-weight:700;margin:0">${loc.name} (${loc.code})</h3>`;
             html += `<span style="font-size:12px;opacity:0.85">Min: ${loc.min} | Max: ${loc.max} staff</span>`;
             html += `</div>`;
@@ -1689,13 +1677,12 @@ async function loadTimingsView() {
                     return (shiftOrder[a.shift] || 99) - (shiftOrder[b.shift] || 99);
                 });
                 const isWeekend = i >= 5;
-                const closingTime = isWeekend ? '12:00 AM' : '10:00 PM';
                 const count = entries.length;
                 const countColor = count < loc.min ? '#ef4444' : count >= loc.min ? '#10b981' : '#6b7280';
 
                 html += `<tr>`;
                 html += `<td><strong>${days[i]}</strong>${isWeekend ? ' <span style="font-size:10px;color:#c8940a">&#9733;</span>' : ''}</td>`;
-                html += `<td style="font-size:12px;color:#6b7280">10:00 AM - ${closingTime}</td>`;
+                html += `<td style="font-size:12px;color:#6b7280">${bounds ? bounds.open + ' - ' + bounds.close : '-'}</td>`;
                 html += `<td>`;
                 if (entries.length > 0) {
                     entries.forEach(e => {
@@ -2179,7 +2166,7 @@ async function showWhatsApp() {
     } else {
         messages.forEach((m, i) => {
             body += `<div class="wa-msg-block">
-                <div class="wa-staff"><i class="fas fa-user" style="margin-right:6px;color:#6366f1"></i>${m.staff || m.name || 'Staff ' + (i+1)}</div>
+                <div class="wa-staff"><i class="fas fa-user" style="margin-right:6px;color:var(--accent)"></i>${m.staff || m.name || 'Staff ' + (i+1)}</div>
                 <textarea id="wa-msg-${i}" readonly>${m.message || m.text || ''}</textarea>
                 <button class="btn btn-sm btn-outline" onclick="copyWaMsg(${i})"><i class="fas fa-copy"></i> Copy</button>
             </div>`;
@@ -2396,7 +2383,7 @@ async function loadStaff() {
             <td>${maxHrs}h</td>
             <td><span class="badge ${s.is_active ? 'badge-active' : 'badge-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
             <td class="actions-cell">
-                <button class="btn btn-ghost" onclick="showAvailability(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Availability"><i class="fas fa-calendar-check" style="color:#6366f1"></i></button>
+                <button class="btn btn-ghost" onclick="showAvailability(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Availability"><i class="fas fa-calendar-check" style="color:var(--accent)"></i></button>
                 <button class="btn btn-ghost" onclick="editStaff(${s.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-ghost" onclick="deleteStaff(${s.id}, '${s.name.replace(/'/g, "\\'")}')" ><i class="fas fa-trash" style="color:#ef4444"></i></button>
             </td>
@@ -2563,6 +2550,7 @@ async function saveAvailability(staffId) {
 async function loadLocations() {
     const locs = await api('/api/locations');
     allLocations = locs;
+    updateLegend();
     const body = document.getElementById('locations-table-body');
     body.innerHTML = locs.map(l => `
         <tr>
@@ -2638,6 +2626,7 @@ async function deleteLocation(id, name) {
 async function loadShiftsPage() {
     const shifts = await api('/api/shifts');
     allShifts = shifts;
+    updateLegend();
     const body = document.getElementById('shifts-table-body');
     if (!shifts.length) {
         body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No shifts yet. Click "Add Shift" to create one.</td></tr>`;
@@ -2725,6 +2714,10 @@ async function loadSettingsPage() {
             `Currently saved: ${staff.length} staff, ${locs.length} locations, ${shifts.length} shifts, ${scheds.length} schedules.`;
         document.getElementById('business-name-input').value =
             (settings && settings.business_name) || '';
+        const acc = (settings && settings.accent_color) || '#6366f1';
+        const picker = document.getElementById('accent-picker');
+        if (picker) picker.value = acc;
+        renderColorPresets(acc);
     } catch (e) { /* leave defaults */ }
 
     // Auto-check for updates so the status shows without the user clicking.
@@ -2743,7 +2736,38 @@ async function loadBranding() {
     try {
         const s = await api('/api/settings');
         applyBusinessName(s && s.business_name);
+        applyAccent(s && s.accent_color);
     } catch (e) { /* keep default */ }
+}
+
+// ---- Theme color ----
+const ACCENT_PRESETS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6','#0891b2','#e11d48','#7c3aed','#059669'];
+
+function applyAccent(color) {
+    if (!color) return;
+    document.documentElement.style.setProperty('--accent', color);
+    if (typeof updateLegend === 'function') updateLegend();
+}
+
+function renderColorPresets(current) {
+    const el = document.getElementById('color-presets');
+    if (!el) return;
+    el.innerHTML = ACCENT_PRESETS.map(c =>
+        `<div onclick="saveAccent('${c}')" title="${c}" style="width:34px;height:34px;border-radius:8px;background:${c};cursor:pointer;border:3px solid ${current && current.toLowerCase() === c.toLowerCase() ? '#111827' : 'transparent'};box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>`
+    ).join('');
+}
+
+async function saveAccent(color, silent) {
+    applyAccent(color);
+    const picker = document.getElementById('accent-picker');
+    if (picker) picker.value = color;
+    renderColorPresets(color);
+    await api('/api/settings', {method: 'POST', body: {accent_color: color}});
+    if (!silent) toast('Theme color updated');
+}
+
+function saveAccentFromPicker() {
+    saveAccent(document.getElementById('accent-picker').value);
 }
 
 async function saveBusinessName() {
@@ -2998,7 +3022,7 @@ async function loadFairness() {
             </td>
             <td>
                 ${e.weekends_worked || 0}
-                <div class="fairness-bar"><div class="fairness-bar-fill" style="width:${((e.weekends_worked || 0) / maxWeekends) * 100}%;background:#6366f1"></div></div>
+                <div class="fairness-bar"><div class="fairness-bar-fill" style="width:${((e.weekends_worked || 0) / maxWeekends) * 100}%;background:var(--accent)"></div></div>
             </td>
             <td>
                 ${e.off_days || 0}
