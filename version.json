@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
-  "notes": "Fixes locations not showing; updates now install in place (no duplicate app/disk icons); PDF/Excel use your shop name; colors customizable.",
+  "version": "1.0.4",
+  "notes": "Update downloads are now reliable (no more stuck 'Downloading\u2026'); installs in place.",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
