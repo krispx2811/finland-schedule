@@ -1,5 +1,5 @@
 {
-  "version": "1.0.4",
-  "notes": "Update downloads are now reliable (no more stuck 'Downloading\u2026'); installs in place.",
+  "version": "1.0.5",
+  "notes": "Shift preference now lets you pick multiple shifts per staff member (or leave empty for Any).",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
