@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
-  "notes": "Opening time now follows your shifts; removed MOO/SCC/MGM defaults; customizable colors (theme + per-location) in Settings.",
+  "version": "1.0.2",
+  "notes": "PDF and Excel exports now show your custom shop name (Settings \u2192 App name) instead of Finland Optical.",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
