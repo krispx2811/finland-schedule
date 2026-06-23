@@ -2433,8 +2433,8 @@ async function loadStaff() {
     } catch (e) { /* keep cached */ }
     const body = document.getElementById('staff-table-body');
     body.innerHTML = staff.map(s => {
-        const tag = s.staff_tag || 'Regular';
-        const tagClass = tag === 'Senior' ? 'badge-tag-senior' : tag === 'Trainee' ? 'badge-tag-trainee' : 'badge-tag-regular';
+        const tag = s.staff_tag || 'Salesman';
+        const tagClass = tag === 'Trainee' ? 'badge-tag-trainee' : tag === 'GM' ? 'badge-tag-senior' : 'badge-tag-regular';
         const maxHrs = s.overtime_max_hours || 45;
         return `<tr>
             <td><strong>${s.name}</strong></td>
@@ -2478,7 +2478,10 @@ function showAddStaffModal(staff = null) {
     }).join('');
     if (!prefChecks) prefChecks = '<span style="font-size:13px;color:var(--muted)">No shifts yet — add shifts first.</span>';
 
-    const currentTag = staff ? (staff.staff_tag || 'Regular') : 'Regular';
+    const currentTag = staff ? (staff.staff_tag || 'Salesman') : 'Salesman';
+    const STAFF_TAGS = ['Salesman', 'Admin', 'Marketing', 'GM', 'Accounting', 'Trainee'];
+    let tagOpts = STAFF_TAGS.map(t => `<option value="${t}" ${currentTag === t ? 'selected' : ''}>${t}</option>`).join('');
+    if (!STAFF_TAGS.includes(currentTag)) tagOpts += `<option value="${currentTag}" selected>${currentTag}</option>`;
     const currentMax = staff ? (staff.overtime_max_hours || 45) : 45;
 
     showModal(staff ? 'Edit Staff' : 'Add Staff', `
@@ -2488,11 +2491,7 @@ function showAddStaffModal(staff = null) {
         </div>
         <div class="form-group">
             <label>Tag</label>
-            <select id="staff-tag">
-                <option value="Regular" ${currentTag==='Regular'?'selected':''}>Regular</option>
-                <option value="Senior" ${currentTag==='Senior'?'selected':''}>Senior</option>
-                <option value="Trainee" ${currentTag==='Trainee'?'selected':''}>Trainee</option>
-            </select>
+            <select id="staff-tag">${tagOpts}</select>
         </div>
         <div class="form-group">
             <label>Fixed Location</label>
