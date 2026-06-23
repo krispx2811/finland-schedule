@@ -1,5 +1,5 @@
 {
-  "version": "1.0.9",
-  "notes": "Updates now reliably close and reopen the app on their own.",
+  "version": "1.0.10",
+  "notes": "The update banner now shows a live download percentage.",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
