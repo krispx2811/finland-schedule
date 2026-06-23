@@ -103,9 +103,21 @@ def download_and_install(download_url, timeout=180):
         raise ValueError("No download URL")
     tmpdir = tempfile.mkdtemp(prefix="fs_update_")
     dmg = os.path.join(tmpdir, "update.dmg")
-    req = urllib.request.Request(download_url, headers={"User-Agent": "FinlandSchedule"})
-    with urllib.request.urlopen(req, timeout=timeout, context=_ssl_context()) as resp, open(dmg, "wb") as f:
-        shutil.copyfileobj(resp, f)
+    # Use curl rather than urllib: urllib can stall indefinitely on GitHub's
+    # release-asset CDN redirect. curl resumes (-C -), retries, and aborts a
+    # stalled transfer (--speed-time/--speed-limit) so it never hangs forever.
+    r = subprocess.run(
+        ["curl", "-fL", "-o", dmg, download_url,
+         "-C", "-",
+         "--retry", "10", "--retry-delay", "3", "--retry-all-errors",
+         "--connect-timeout", "20",
+         "--speed-time", "30", "--speed-limit", "1024",
+         "--max-time", str(timeout)],
+        capture_output=True, text=True,
+    )
+    if r.returncode != 0 or not os.path.exists(dmg) or os.path.getsize(dmg) < 100000:
+        detail = r.stderr.strip().splitlines()[-1] if r.stderr.strip() else "incomplete download"
+        raise RuntimeError("Download failed — " + detail)
 
     mountpoint = os.path.join(tmpdir, "mnt")
     os.makedirs(mountpoint, exist_ok=True)
