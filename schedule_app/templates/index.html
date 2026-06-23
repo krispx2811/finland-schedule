@@ -2441,7 +2441,7 @@ async function loadStaff() {
             <td><span class="badge ${tagClass}">${tag}</span></td>
             <td>${s.default_location ? `<span class="badge badge-info">${s.default_location}</span>` : '-'}</td>
             <td>${s.default_role ? `<span class="badge badge-info">${s.default_role}</span>` : '-'}</td>
-            <td>${s.shift_preference && s.shift_preference !== 'Any' ? `<span class="badge badge-info">${s.shift_preference}</span>` : 'Any'}</td>
+            <td>${s.shift_preference && s.shift_preference !== 'Any' ? s.shift_preference.split(',').map(p => `<span class="badge badge-info">${p.trim()}</span>`).join(' ') : 'Any'}</td>
             <td>${maxHrs}h</td>
             <td><span class="badge ${s.is_active ? 'badge-active' : 'badge-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
             <td class="actions-cell">
@@ -2466,18 +2466,17 @@ function showAddStaffModal(staff = null) {
     const roleSuggestions = roleVals.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
     const currentRole = staff && staff.default_role ? staff.default_role.replace(/"/g, '&quot;') : '';
 
-    // Shift-preference options come from the actual shifts in the database.
+    // Shift preference: check one or more shifts (leave all empty for "Any").
+    // Stored as a comma-separated list of shift labels, or "Any".
     const curPref = (staff && staff.shift_preference) ? staff.shift_preference : 'Any';
-    let prefOpts = `<option value="Any" ${curPref === 'Any' ? 'selected' : ''}>Any</option>`;
-    (allShifts || []).forEach(sh => {
-        const sel = curPref === sh.label ? 'selected' : '';
+    const prefSet = new Set(curPref && curPref !== 'Any'
+        ? curPref.split(',').map(x => x.trim()).filter(Boolean) : []);
+    let prefChecks = (allShifts || []).map(sh => {
+        const checked = prefSet.has(sh.label) ? 'checked' : '';
         const time = (sh.start_time && sh.end_time) ? ` (${sh.start_time}–${sh.end_time})` : '';
-        prefOpts += `<option value="${sh.label.replace(/"/g, '&quot;')}" ${sel}>${sh.label}${time}</option>`;
-    });
-    // Keep a previously-saved preference visible even if that shift was removed.
-    if (curPref !== 'Any' && !(allShifts || []).some(sh => sh.label === curPref)) {
-        prefOpts += `<option value="${curPref.replace(/"/g, '&quot;')}" selected>${curPref}</option>`;
-    }
+        return `<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" class="pref-shift" value="${sh.label.replace(/"/g, '&quot;')}" ${checked}> ${sh.label}${time}</label>`;
+    }).join('');
+    if (!prefChecks) prefChecks = '<span style="font-size:13px;color:var(--muted)">No shifts yet — add shifts first.</span>';
 
     const currentTag = staff ? (staff.staff_tag || 'Regular') : 'Regular';
     const currentMax = staff ? (staff.overtime_max_hours || 45) : 45;
@@ -2505,8 +2504,8 @@ function showAddStaffModal(staff = null) {
             <datalist id="role-suggestions">${roleSuggestions}</datalist>
         </div>
         <div class="form-group">
-            <label>Shift Preference</label>
-            <select id="staff-shift-pref">${prefOpts}</select>
+            <label>Shift Preference <span style="font-weight:400;color:var(--muted);font-size:12px">(check one or more — leave all empty for Any)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;padding-top:4px">${prefChecks}</div>
         </div>
         <div class="form-group">
             <label>Max Hours/Week</label>
@@ -2522,7 +2521,8 @@ async function saveStaff(id) {
     const name = document.getElementById('staff-name').value;
     const loc = document.getElementById('staff-location').value;
     const role = document.getElementById('staff-role').value;
-    const pref = document.getElementById('staff-shift-pref').value;
+    const checkedPrefs = Array.from(document.querySelectorAll('.pref-shift:checked')).map(c => c.value);
+    const pref = checkedPrefs.length ? checkedPrefs.join(',') : 'Any';
     const tag = document.getElementById('staff-tag').value;
     const maxHours = parseInt(document.getElementById('staff-max-hours').value) || 45;
 

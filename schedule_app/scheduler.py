@@ -14,14 +14,17 @@ PREFERENCE_SHIFTS = {
 
 def get_preferred_shift(staff, available_shifts):
     pref = getattr(staff, 'shift_preference', 'Any') or 'Any'
-    if pref == "Any":
+    if not pref.strip() or pref == "Any":
         return random.choice(available_shifts)
-    # A preference that matches a real shift label wins (works with custom shifts).
-    exact = [s for s in available_shifts if s.label == pref]
-    if exact:
-        return random.choice(exact)
-    preferred_labels = PREFERENCE_SHIFTS.get(pref, [])
-    matching = [s for s in available_shifts if s.label in preferred_labels]
+    # Preference may be several shifts, comma-separated (e.g. "Morning,Evening").
+    wanted = set()
+    for token in pref.split(","):
+        token = token.strip()
+        if not token:
+            continue
+        wanted.add(token)                       # exact shift label
+        wanted.update(PREFERENCE_SHIFTS.get(token, []))  # legacy category expansion
+    matching = [s for s in available_shifts if s.label in wanted]
     return random.choice(matching) if matching else random.choice(available_shifts)
 
 
