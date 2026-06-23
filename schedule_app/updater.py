@@ -10,13 +10,55 @@ import os
 import sys
 import json
 import ssl
+import time
 import shlex
 import shutil
 import tempfile
+import threading
 import subprocess
 import urllib.request
 
 from .config import APP_VERSION, UPDATE_MANIFEST_URL
+
+# Live progress of an in-app update, polled by the UI.
+_progress = {"active": False, "percent": 0, "phase": "idle", "error": "", "done": False}
+
+
+def get_progress():
+    return dict(_progress)
+
+
+def start_update(download_url):
+    """Kick off the download+install on a background thread (non-blocking)."""
+    if _progress.get("active") and not _progress.get("done"):
+        return  # already running
+    _progress.update(active=True, percent=0, phase="starting", error="", done=False)
+    threading.Thread(target=_run_update, args=(download_url,), daemon=True).start()
+
+
+def _run_update(download_url):
+    try:
+        download_and_install(download_url)
+        _progress.update(phase="installing", percent=100, done=True)
+    except Exception as e:  # surface the failure to the UI
+        _progress.update(active=False, phase="error", error=str(e))
+
+
+def _content_length(url):
+    """Best-effort total download size (bytes) via a HEAD request."""
+    try:
+        r = subprocess.run(["curl", "-sIL", "--connect-timeout", "15", url],
+                           capture_output=True, text=True, timeout=40)
+        size = 0
+        for line in r.stdout.splitlines():
+            if line.lower().startswith("content-length:"):
+                try:
+                    size = int(line.split(":", 1)[1].strip())
+                except ValueError:
+                    pass
+        return size
+    except Exception:
+        return 0
 
 try:
     import certifi
@@ -103,21 +145,31 @@ def download_and_install(download_url, timeout=180):
         raise ValueError("No download URL")
     tmpdir = tempfile.mkdtemp(prefix="fs_update_")
     dmg = os.path.join(tmpdir, "update.dmg")
+    _progress.update(active=True, phase="downloading", percent=0, error="", done=False)
+
     # Use curl rather than urllib: urllib can stall indefinitely on GitHub's
     # release-asset CDN redirect. curl resumes (-C -), retries, and aborts a
     # stalled transfer (--speed-time/--speed-limit) so it never hangs forever.
-    r = subprocess.run(
+    total = _content_length(download_url)
+    proc = subprocess.Popen(
         ["curl", "-fL", "-o", dmg, download_url,
          "-C", "-",
          "--retry", "10", "--retry-delay", "3", "--retry-all-errors",
          "--connect-timeout", "20",
          "--speed-time", "30", "--speed-limit", "1024",
          "--max-time", str(timeout)],
-        capture_output=True, text=True,
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
     )
-    if r.returncode != 0 or not os.path.exists(dmg) or os.path.getsize(dmg) < 100000:
-        detail = r.stderr.strip().splitlines()[-1] if r.stderr.strip() else "incomplete download"
+    # Poll the partial file size to report download percentage to the UI.
+    while proc.poll() is None:
+        if total and os.path.exists(dmg):
+            _progress["percent"] = min(99, int(os.path.getsize(dmg) * 100 / total))
+        time.sleep(0.4)
+    err = proc.stderr.read() if proc.stderr else ""
+    if proc.returncode != 0 or not os.path.exists(dmg) or os.path.getsize(dmg) < 100000:
+        detail = err.strip().splitlines()[-1] if err.strip() else "incomplete download"
         raise RuntimeError("Download failed — " + detail)
+    _progress.update(percent=100, phase="installing")
 
     mountpoint = os.path.join(tmpdir, "mnt")
     os.makedirs(mountpoint, exist_ok=True)

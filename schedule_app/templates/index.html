@@ -2898,18 +2898,38 @@ async function checkForUpdate(showProgress) {
 }
 
 async function downloadUpdate(btn) {
-    if (btn) { btn.disabled = true; btn.textContent = 'Downloading…'; }
-    toast('Downloading update… this can take a moment.');
+    const banner = document.getElementById('update-banner-text');
+    if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+    banner.textContent = 'Starting download…';
     const res = await api('/api/admin/download-update', {method: 'POST', body: {download_url: pendingUpdateUrl}});
-    if (res && res.success) {
-        document.getElementById('update-banner-text').textContent =
-            'Installing update… the app will close and reopen by itself in a few seconds. Please wait.';
-        if (btn) btn.style.display = 'none';
-        toast('Installing update… the app will reopen automatically.');
-    } else {
-        toast('Update failed: ' + ((res && res.error) || 'unknown error'));
+    if (!res || res.success === false) {
+        banner.textContent = 'Update failed: ' + ((res && res.error) || 'unknown error');
         if (btn) { btn.disabled = false; btn.textContent = 'Download & Install'; }
+        return;
     }
+    if (btn) btn.style.display = 'none';
+    // Poll the live progress and show the percentage.
+    const poll = setInterval(async () => {
+        let p;
+        try {
+            p = await api('/api/admin/update-progress');
+        } catch (e) {
+            // server is restarting (install + relaunch) → polling fails, that's expected
+            clearInterval(poll);
+            banner.textContent = 'Installing update… the app will reopen shortly.';
+            return;
+        }
+        if (p.phase === 'error') {
+            clearInterval(poll);
+            banner.textContent = 'Update failed: ' + (p.error || 'unknown error');
+        } else if (p.phase === 'installing' || p.percent >= 100) {
+            banner.textContent = 'Downloaded ✓ — installing… the app will close and reopen by itself.';
+        } else if (p.phase === 'downloading') {
+            banner.textContent = p.percent > 0 ? `Downloading update… ${p.percent}%` : 'Downloading update…';
+        } else {
+            banner.textContent = 'Preparing update…';
+        }
+    }, 500);
 }
 
 async function loadSampleData() {

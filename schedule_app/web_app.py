@@ -466,11 +466,16 @@ def api_download_update():
     if not url:
         # fall back to whatever the manifest currently advertises
         url = updater.check_for_update().get("download_url", "")
-    try:
-        path = updater.download_and_install(url)
-        return jsonify({"success": True, "path": path})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 400
+    if not url:
+        return jsonify({"success": False, "error": "No download URL"}), 400
+    updater.start_update(url)  # runs in the background; UI polls progress
+    return jsonify({"success": True, "started": True})
+
+
+@app.route("/api/admin/update-progress")
+def api_update_progress():
+    from . import updater
+    return jsonify(updater.get_progress())
 
 
 @app.route("/api/settings")
