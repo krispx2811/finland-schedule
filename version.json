@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
-  "notes": "PDF and Excel exports now show your custom shop name (Settings \u2192 App name) instead of Finland Optical.",
+  "version": "1.0.3",
+  "notes": "Fixes locations not showing; updates now install in place (no duplicate app/disk icons); PDF/Excel use your shop name; colors customizable.",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
