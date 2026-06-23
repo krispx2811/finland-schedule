@@ -1,5 +1,5 @@
 {
-  "version": "1.0.6",
-  "notes": "Staff tags (Salesman, Admin, Marketing, GM, Accounting, Trainee); Fri & Sat now schedule one salesman with everyone else off; redesigned PDF with dates and colors that fit the page.",
+  "version": "1.0.7",
+  "notes": "Set the Friday salesman's shift in Settings \u2192 Scheduling (e.g. 3-11).",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
