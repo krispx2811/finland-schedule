@@ -1,5 +1,5 @@
 {
-  "version": "1.0.7",
-  "notes": "Set the Friday salesman's shift in Settings \u2192 Scheduling (e.g. 3-11).",
+  "version": "1.0.8",
+  "notes": "Weekend salesman now rotates fairly by who has worked the fewest Fri/Sat shifts (no more repeats/duplicates).",
   "download_url": "https://github.com/krispx2811/finland-schedule/releases/latest/download/Finland-Schedule.dmg"
 }
