@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finland Optical Center - Schedule Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ---- CSS Custom Properties for Dark Mode ---- */
+        :root {
+            --bg: #f0f2f5;
+            --text: #1a1a2e;
+            --card-bg: #fff;
+            --card-border: #e5e7eb;
+            --topbar-bg: #fff;
+            --topbar-border: #e5e7eb;
+            --input-bg: #fff;
+            --input-border: #d1d5db;
+            --input-text: #1a1a2e;
+            --table-hover: #f9fafb;
+            --table-header-bg: #1a1a2e;
+            --table-header-text: #fff;
+            --schedule-row-hover: #f0f0ff;
+            --schedule-name-bg: #fafafa;
+            --schedule-name-hover: #eef;
+            --divider: #f3f4f6;
+            --muted: #6b7280;
+            --ghost-hover-bg: #f3f4f6;
+            --modal-bg: #fff;
+            --toast-bg: #1a1a2e;
+            --toast-text: #fff;
+        }
+
+        body.dark-mode {
+            --bg: #0f0f1a;
+            --text: #e2e2ef;
+            --card-bg: #1a1a2e;
+            --card-border: #2a2a40;
+            --topbar-bg: #16162a;
+            --topbar-border: #2a2a40;
+            --input-bg: #22223a;
+            --input-border: #3a3a55;
+            --input-text: #e2e2ef;
+            --table-hover: #22223a;
+            --table-header-bg: #0f0f1a;
+            --table-header-text: #e2e2ef;
+            --schedule-row-hover: #22224a;
+            --schedule-name-bg: #1e1e35;
+            --schedule-name-hover: #28284a;
+            --divider: #2a2a40;
+            --muted: #8888aa;
+            --ghost-hover-bg: #22223a;
+            --modal-bg: #1a1a2e;
+            --toast-bg: #2a2a4a;
+            --toast-text: #e2e2ef;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ---- Sidebar ---- */
+        .sidebar {
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            width: 240px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .sidebar-brand h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .sidebar-brand p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.65);
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-item.active { background: rgba(99,102,241,0.25); color: #fff; }
+        .nav-item i { width: 20px; text-align: center; font-size: 15px; }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .dark-mode-toggle:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* ---- Main Content ---- */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+        }
+
+        .topbar {
+            background: var(--topbar-bg);
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--topbar-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .topbar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            max-width: 70%;
+        }
+
+        .topbar-actions .btn {
+            padding: 7px 12px;
+            font-size: 12px;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .content {
+            padding: 24px 32px;
+        }
+
+        /* ---- Buttons ---- */
+        .btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+
+        .btn-success {
+            background: #10b981;
+            color: #fff;
+        }
+        .btn-success:hover { background: #059669; }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-danger:hover { background: #dc2626; }
+
+        .btn-outline {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 1px solid var(--input-border);
+        }
+        .btn-outline:hover { background: var(--ghost-hover-bg); border-color: var(--muted); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--muted);
+            padding: 8px 12px;
+        }
+        .btn-ghost:hover { background: var(--ghost-hover-bg); color: var(--text); }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: #fff;
+        }
+        .btn-warning:hover { background: #d97706; }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 11px;
+        }
+
+        /* ---- Cards ---- */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--divider);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-header h3 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        /* ---- Search Input ---- */
+        .search-input {
+            padding: 9px 14px 9px 34px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            background: var(--input-bg);
+            color: var(--input-text);
+            width: 220px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        /* ---- Schedule Grid ---- */
+        .schedule-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .schedule-controls input[type="date"] {
+            padding: 9px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .schedule-controls select {
+            padding: 9px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            background: var(--input-bg);
+            color: var(--input-text);
+            min-width: 200px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .schedule-table thead th {
+            background: var(--table-header-bg);
+            color: var(--table-header-text);
+            padding: 12px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .schedule-table thead th:first-child {
+            border-radius: 10px 0 0 0;
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        .schedule-table thead th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+
+        .schedule-table tbody td {
+            padding: 6px 4px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+            border-bottom: 1px solid var(--divider);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .schedule-table tbody td:first-child {
+            text-align: left;
+            padding-left: 16px;
+            font-weight: 600;
+            font-size: 13px;
+            background: var(--schedule-name-bg);
+            cursor: default;
+        }
+
+        .schedule-table tbody tr:hover td {
+            background: var(--schedule-row-hover) !important;
+        }
+
+        .schedule-table tbody tr:hover td:first-child {
+            background: var(--schedule-name-hover) !important;
+        }
+
+        /* Staff count footer row */
+        .schedule-table tfoot td {
+            padding: 10px 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--schedule-name-bg);
+            border-top: 2px solid var(--card-border);
+            color: var(--muted);
+        }
+
+        .schedule-table tfoot td:first-child {
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        /* Cell badges */
+        .cell-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 70px;
+        }
+
+        .cell-off { background: #e5e7eb; color: #6b7280; }
+        .cell-leave { background: #fef3c7; color: #92400e; }
+        .cell-clinic { background: #dbeafe; color: #1e40af; }
+        .cell-office { background: #d1fae5; color: #065f46; }
+        .cell-nizwa { background: #e9d5ff; color: #6b21a8; }
+        .cell-assigned { background: #eef2ff; color: #3730a3; }
+
+        /* Branch-specific colors */
+        .cell-moo { background: #991b1b; color: #fff; }
+        .cell-mgm { background: #fff200; color: #333; }
+        .cell-scc { background: #831843; color: #fff; }
+        .cell-av { background: #fed7aa; color: #9a3412; }
+        .cell-ccc { background: #d1fae5; color: #065f46; }
+        .cell-qcc { background: #dbeafe; color: #1e40af; }
+        .cell-salalah { background: #c8940a; color: #fff; }
+
+        .cell-duration {
+            display: block;
+            font-size: 9px;
+            font-weight: 500;
+            opacity: 0.7;
+            margin-top: 1px;
+        }
+
+        /* Color Legend */
+        .color-legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 10px 0;
+            margin-top: 8px;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        /* ---- Staff / Location Tables ---- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--card-border);
+        }
+
+        .data-table tbody td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid var(--divider);
+        }
+
+        .data-table tbody tr:hover { background: var(--table-hover); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-active { background: #d1fae5; color: #065f46; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-approved { background: #d1fae5; color: #065f46; }
+        .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+        .badge-tag-regular { background: #dbeafe; color: #1e40af; }
+        .badge-tag-senior { background: #e9d5ff; color: #6b21a8; }
+        .badge-tag-trainee { background: #fef3c7; color: #92400e; }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* ---- Modal ---- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--modal-bg);
+            border-radius: 16px;
+            width: 420px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            animation: modalIn 0.25s ease;
+        }
+
+        .modal.modal-lg { width: 680px; }
+        .modal.modal-xl { width: 900px; }
+
+        @keyframes modalIn {
+            from { transform: translateY(20px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 { font-size: 16px; font-weight: 600; }
+
+        .modal-body { padding: 24px; }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.2s;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+
+        /* ---- Page Sections ---- */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* ---- Stats ---- */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            padding: 20px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 20px;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        /* ---- Toast ---- */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            padding: 14px 24px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 300;
+            display: none;
+            animation: toastIn 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        }
+
+        .toast.show { display: block; }
+
+        @keyframes toastIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #d1d5db;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ---- Conflict Banner ---- */
+        .conflict-banner {
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .conflict-banner.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        .conflict-banner.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .conflict-banner i { font-size: 16px; }
+
+        /* ---- Swap Badge ---- */
+        .count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            margin-left: -4px;
+        }
+
+        /* ---- View Toggle ---- */
+        .view-toggle {
+            display: inline-flex;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            padding: 8px 14px;
+            border: none;
+            background: var(--card-bg);
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.2s;
+        }
+
+        .view-toggle button.active {
+            background: #6366f1;
+            color: #fff;
+        }
+
+        .view-toggle button:not(:last-child) {
+            border-right: 1px solid var(--input-border);
+        }
+
+        /* ---- WhatsApp message textarea ---- */
+        .wa-msg-block {
+            margin-bottom: 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .wa-msg-block .wa-staff {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .wa-msg-block textarea {
+            width: 100%;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            min-height: 50px;
+            margin-bottom: 6px;
+            background: var(--input-bg);
+            color: var(--input-text);
+        }
+
+        /* ---- Availability toggles ---- */
+        .avail-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .avail-day {
+            text-align: center;
+            padding: 12px 4px;
+            border: 2px solid var(--input-border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .avail-day.active {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .avail-day .day-label {
+            font-size: 11px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .avail-day.active .day-label { color: #065f46; }
+
+        /* ---- Dashboard ---- */
+        .fairness-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--card-border);
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .fairness-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .coverage-cell {
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+
+        .coverage-ok { background: #d1fae5; color: #065f46; }
+        .coverage-low { background: #fee2e2; color: #991b1b; }
+
+        /* ---- Leave Status Badges ---- */
+        .leave-status-pending { background: #fef3c7; color: #92400e; }
+        .leave-status-approved { background: #d1fae5; color: #065f46; }
+        .leave-status-rejected { background: #fee2e2; color: #991b1b; }
+
+        /* ---- History Timeline ---- */
+        .history-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--divider);
+            font-size: 13px;
+        }
+
+        .history-item:last-child { border-bottom: none; }
+
+        .history-item .history-time {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-bottom: 2px;
+        }
+
+        .history-item .history-text {
+            color: var(--text);
+        }
+
+        /* ---- Custom Context Menu ---- */
+        .context-menu {
+            position: fixed;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            z-index: 250;
+            min-width: 160px;
+            padding: 6px 0;
+            display: none;
+        }
+
+        .context-menu.show { display: block; }
+
+        .context-menu-item {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            transition: background 0.15s;
+        }
+
+        .context-menu-item:hover {
+            background: var(--ghost-hover-bg);
+        }
+
+        .context-menu-item i {
+            width: 16px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: var(--divider);
+            margin: 4px 0;
+        }
+
+        /* ---- Drag & Drop ---- */
+        .schedule-table tbody td.dragging {
+            opacity: 0.4;
+        }
+
+        .schedule-table tbody td.drag-over {
+            background: rgba(99,102,241,0.15) !important;
+            outline: 2px dashed #6366f1;
+            outline-offset: -2px;
+        }
+
+        /* ---- Multi-Week Headers ---- */
+        .multi-week-header {
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            background: var(--schedule-name-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px 8px 0 0;
+            margin-top: 16px;
+            color: var(--text);
+        }
+
+        .multi-week-header:first-child {
+            margin-top: 0;
+        }
+
+        /* ---- Reports Page ---- */
+        .hours-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--card-border);
+            overflow: hidden;
+            margin-top: 4px;
+            min-width: 60px;
+        }
+
+        .hours-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: #6366f1;
+            transition: width 0.3s;
+        }
+
+        .report-summary-row td {
+            font-weight: 700 !important;
+            background: var(--schedule-name-bg) !important;
+            border-top: 2px solid var(--card-border) !important;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Update banner -->
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#6366f1;color:#fff;padding:10px 18px;align-items:center;justify-content:center;gap:14px;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.25)">
+    <i class="fas fa-arrow-circle-up"></i>
+    <span id="update-banner-text">A new version is available.</span>
+    <button class="btn" style="background:#fff;color:#6366f1;font-weight:600" onclick="downloadUpdate(this)">Download &amp; Install</button>
+    <button class="btn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6)" onclick="document.getElementById('update-banner').style.display='none'">Later</button>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h1><i class="fas fa-glasses"></i> <span id="brand-name">Finland Optical</span></h1>
+        <p>Schedule Manager</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="showPage('schedule')">
+            <i class="fas fa-calendar-alt"></i> Schedule
+        </div>
+        <div class="nav-item" onclick="showPage('staff')">
+            <i class="fas fa-users"></i> Staff
+        </div>
+        <div class="nav-item" onclick="showPage('locations')">
+            <i class="fas fa-store"></i> Locations
+        </div>
+        <div class="nav-item" onclick="showPage('shifts')">
+            <i class="fas fa-clock"></i> Shifts
+        </div>
+        <div class="nav-item" onclick="showPage('leave')">
+            <i class="fas fa-plane-departure"></i> Leave
+        </div>
+        <div class="nav-item" onclick="showPage('dashboard')">
+            <i class="fas fa-chart-bar"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="showPage('reports')">
+            <i class="fas fa-chart-line"></i> Reports
+        </div>
+        <div class="nav-item" onclick="showPage('settings')">
+            <i class="fas fa-cog"></i> Settings
+        </div>
+    </nav>
+    <div class="sidebar-footer">
+        <span>v3.0.0 &middot; Oman</span>
+        <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="dark-mode-btn" title="Toggle dark mode">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main">
+    <!-- ======= SCHEDULE PAGE ======= -->
+    <div id="page-schedule" class="page active">
+        <div class="topbar">
+            <h2><i class="fas fa-calendar-alt" style="color:#6366f1;margin-right:8px"></i> Weekly Schedule</h2>
+            <div class="topbar-actions">
+                <button class="btn btn-outline" onclick="showHistory()"><i class="fas fa-clock"></i> History</button>
+                <button class="btn btn-outline" onclick="showSwaps()" id="btn-swaps"><i class="fas fa-exchange-alt"></i> Swaps <span id="swap-badge" class="count-badge" style="display:none">0</span></button>
+                <button class="btn btn-outline" onclick="showWhatsApp()"><i class="fab fa-whatsapp" style="color:#25d366"></i> Share</button>
+                <button class="btn btn-outline" onclick="showCopyWeekModal()"><i class="fas fa-copy"></i> Copy</button>
+                <button class="btn btn-outline" onclick="exportExcel()"><i class="fas fa-file-excel" style="color:#10b981"></i> Excel</button>
+                <button class="btn btn-outline" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button class="btn btn-outline" onclick="toggleMultiWeek()" id="btn-multi-week"><i class="fas fa-layer-group"></i> Multi</button>
+                <button class="btn btn-warning" onclick="showOptimizeModal()"><i class="fas fa-brain"></i> AI Optimize</button>
+                <button class="btn btn-primary" onclick="showGenerateModal()"><i class="fas fa-magic"></i> Generate</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="stats-row" id="stats-row"></div>
+            <div id="conflict-banner-area"></div>
+            <div class="schedule-controls">
+                <select id="schedule-select" onchange="loadSchedule()">
+                    <option value="">Select a schedule...</option>
+                </select>
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" id="schedule-search" placeholder="Search staff..." oninput="filterScheduleRows()">
+                </div>
+                <div class="view-toggle" id="view-toggle" style="display:none">
+                    <button class="active" onclick="setView('staff')"><i class="fas fa-users"></i> Staff View</button>
+                    <button onclick="setView('location')"><i class="fas fa-store"></i> Location View</button>
+                    <button onclick="setView('timings')"><i class="fas fa-clock"></i> Timings</button>
+                </div>
+                <button class="btn btn-ghost" onclick="deleteSchedule()"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="card" style="max-height: calc(100vh - 280px); overflow: auto;">
+                <div id="schedule-content">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-plus"></i>
+                        <p>No schedule loaded. Select one or generate a new one.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Color Legend -->
+            <div class="color-legend" id="color-legend">
+                <div class="legend-item"><div class="legend-swatch" style="background:#991b1b"></div>MOO</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fff200"></div>MGM</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#831843"></div>SCC</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fed7aa"></div>Avenues</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#d1fae5"></div>CCC</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#dbeafe"></div>QCC</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#c8940a"></div>Salalah</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#e9d5ff"></div>Nizwa</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#e5e7eb"></div>OFF</div>
+                <div class="legend-item"><div class="legend-swatch" style="background:#fef3c7"></div>Leave</div>
+                <div style="margin-left:auto;font-size:11px;color:#6b7280;display:flex;gap:12px">
+                    <span><i class="fas fa-clock" style="color:#6366f1"></i> Open: 10 AM</span>
+                    <span><i class="fas fa-moon" style="color:#6366f1"></i> Sat-Wed: Close 10 PM</span>
+                    <span><i class="fas fa-star" style="color:#c8940a"></i> Thu-Fri: Close 12 AM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= STAFF PAGE ======= -->
+    <div id="page-staff" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-users" style="color:#6366f1;margin-right:8px"></i> Staff Management</h2>
+            <div class="topbar-actions">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" id="staff-search" placeholder="Search staff..." oninput="filterStaffRows()">
+                </div>
+                <button class="btn btn-primary" onclick="showAddStaffModal()"><i class="fas fa-plus"></i> Add Staff</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Tag</th>
+                            <th>Fixed Location</th>
+                            <th>Fixed Role</th>
+                            <th>Shift Pref</th>
+                            <th>Max Hrs/Wk</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staff-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= LOCATIONS PAGE ======= -->
+    <div id="page-locations" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-store" style="color:#6366f1;margin-right:8px"></i> Locations / Shops</h2>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showAddLocationModal()"><i class="fas fa-plus"></i> Add Location</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Min Staff</th>
+                            <th>Max Staff</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="locations-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= SHIFTS PAGE ======= -->
+    <div id="page-shifts" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-clock" style="color:#6366f1;margin-right:8px"></i> Shifts</h2>
+            <div class="topbar-actions">
+                <button class="btn btn-primary" onclick="showAddShiftModal()"><i class="fas fa-plus"></i> Add Shift</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shifts-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= SETTINGS PAGE ======= -->
+    <div id="page-settings" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-cog" style="color:#6366f1;margin-right:8px"></i> Settings</h2>
+        </div>
+        <div class="content">
+            <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
+                <h3 style="margin-bottom:6px">App name</h3>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">This name shows in the sidebar, the browser tab, and on WhatsApp messages.</p>
+                <div style="display:flex;gap:12px;align-items:flex-end">
+                    <div class="form-group" style="flex:1;margin:0">
+                        <label>Business / App name</label>
+                        <input type="text" id="business-name-input" placeholder="e.g. Finland Optical">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveBusinessName()"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+
+            <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
+                <h3 style="margin-bottom:6px">Updates</h3>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px" id="settings-version">Version …</p>
+                <div style="display:flex;gap:12px;align-items:center">
+                    <button class="btn btn-primary" onclick="checkForUpdate(true)"><i class="fas fa-sync"></i> Check for updates</button>
+                    <span id="update-status" style="font-size:13px;color:var(--muted)"></span>
+                </div>
+            </div>
+
+            <div class="card" style="padding:24px;max-width:640px">
+                <h3 style="margin-bottom:6px">Data</h3>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:4px" id="settings-counts">&nbsp;</p>
+                <p style="font-size:12px;color:var(--muted);margin-bottom:20px" id="settings-location">&nbsp;</p>
+
+                <div style="display:flex;flex-direction:column;gap:16px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;border:1px solid var(--border,#e5e7eb);border-radius:10px">
+                        <div>
+                            <div style="font-weight:600">Back up your data</div>
+                            <div style="font-size:13px;color:var(--muted)">Download a copy of your saved database file. Keep it somewhere safe.</div>
+                        </div>
+                        <button class="btn btn-outline" onclick="window.location='/api/admin/backup'"><i class="fas fa-file-download"></i> Download backup</button>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;border:1px solid var(--border,#e5e7eb);border-radius:10px">
+                        <div>
+                            <div style="font-weight:600">Load sample data</div>
+                            <div style="font-size:13px;color:var(--muted)">Add the original Finland locations, shifts and staff. Existing items are kept.</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="loadSampleData()"><i class="fas fa-download"></i> Load</button>
+                    </div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:16px;border:1px solid #ef4444;border-radius:10px">
+                        <div>
+                            <div style="font-weight:600;color:#ef4444">Clear all data</div>
+                            <div style="font-size:13px;color:var(--muted)">Permanently delete all staff, locations, shifts and schedules. Cannot be undone.</div>
+                        </div>
+                        <button class="btn btn-danger" onclick="clearAllData()" style="background:#ef4444;color:#fff"><i class="fas fa-trash"></i> Clear all</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= LEAVE PAGE ======= -->
+    <div id="page-leave" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-plane-departure" style="color:#6366f1;margin-right:8px"></i> Leave Management</h2>
+        </div>
+        <div class="content">
+            <!-- Request Leave Form -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header"><h3>Request Leave</h3></div>
+                <div style="padding:20px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:end">
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>Staff Member</label>
+                            <select id="leave-staff"></select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>Start Date</label>
+                            <input type="date" id="leave-start">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>End Date</label>
+                            <input type="date" id="leave-end">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                            <label>Leave Type</label>
+                            <select id="leave-type">
+                                <option value="Annual">Annual</option>
+                                <option value="Sick">Sick</option>
+                                <option value="Unpaid">Unpaid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:12px;margin-bottom:0">
+                        <label>Reason (optional)</label>
+                        <textarea id="leave-reason" placeholder="Enter reason for leave..." rows="2"></textarea>
+                    </div>
+                    <div style="margin-top:12px;text-align:right">
+                        <button class="btn btn-primary" onclick="submitLeave()"><i class="fas fa-paper-plane"></i> Submit Request</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave Requests Table -->
+            <div class="card">
+                <div class="card-header"><h3>Leave Requests</h3></div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Staff</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leave-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= DASHBOARD PAGE ======= -->
+    <div id="page-dashboard" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-chart-bar" style="color:#6366f1;margin-right:8px"></i> Dashboard</h2>
+            <div class="topbar-actions">
+                <select id="dashboard-schedule-select" onchange="loadDashboard()" style="padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;min-width:200px;background:var(--input-bg);color:var(--input-text)">
+                    <option value="">Select a schedule...</option>
+                </select>
+                <input type="month" id="fairness-month" onchange="loadFairness()" style="padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--input-bg);color:var(--input-text)">
+            </div>
+        </div>
+        <div class="content">
+            <div class="stats-row" id="dashboard-stats-row">
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value" id="ds-total-hours">--</div><div class="stat-label">Total Hours</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-value" id="ds-overtime">--</div><div class="stat-label">Overtime Count</div></div>
+                <div class="stat-card"><div class="stat-icon"><i class="fas fa-shield-alt"></i></div><div class="stat-value" id="ds-coverage">--</div><div class="stat-label">Coverage Score %</div></div>
+            </div>
+
+            <!-- Staff Hours Table -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header"><h3><i class="fas fa-user-clock" style="margin-right:8px;color:#6366f1"></i> Staff Hours</h3></div>
+                <table class="data-table">
+                    <thead><tr><th>Staff Name</th><th>Hours This Week</th></tr></thead>
+                    <tbody id="dashboard-hours-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Fairness Report -->
+            <div class="card" style="margin-bottom:24px">
+                <div class="card-header"><h3><i class="fas fa-balance-scale" style="margin-right:8px;color:#6366f1"></i> Fairness Report</h3></div>
+                <table class="data-table">
+                    <thead><tr><th>Staff Name</th><th>Fridays Worked</th><th>Weekends Worked</th><th>Off Days</th></tr></thead>
+                    <tbody id="fairness-body"></tbody>
+                </table>
+            </div>
+
+            <!-- Location Coverage Grid -->
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-map-marked-alt" style="margin-right:8px;color:#6366f1"></i> Location Coverage</h3></div>
+                <div id="coverage-grid" style="padding:16px;overflow-x:auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======= REPORTS PAGE ======= -->
+    <div id="page-reports" class="page">
+        <div class="topbar">
+            <h2><i class="fas fa-chart-line" style="color:#6366f1;margin-right:8px"></i> Reports &amp; Analytics</h2>
+            <div class="topbar-actions">
+                <input type="month" id="report-month" onchange="loadMonthlyReport()" style="padding:9px 14px;border:1px solid var(--input-border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;background:var(--input-bg);color:var(--input-text)">
+                <button class="btn btn-primary" onclick="loadMonthlyReport()"><i class="fas fa-sync"></i> Load Report</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="card">
+                <div class="card-header"><h3><i class="fas fa-table" style="margin-right:8px;color:#6366f1"></i> Monthly Report</h3></div>
+                <div style="overflow-x:auto">
+                    <table class="data-table" id="report-table">
+                        <thead>
+                            <tr>
+                                <th>Staff</th>
+                                <th>Tag</th>
+                                <th>Days Worked</th>
+                                <th>Days Off</th>
+                                <th>Days Leave</th>
+                                <th>Total Hours</th>
+                                <th>Top Location</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body">
+                            <tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px">Select a month and click Load Report</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Overlay -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+    <div class="modal" id="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3 id="modal-title">Modal</h3>
+            <button class="btn-ghost" onclick="hideModal()" style="border:none;background:none;cursor:pointer;font-size:18px;color:#9ca3af">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+    </div>
+</div>
+
+<!-- Custom Context Menu -->
+<div class="context-menu" id="context-menu">
+    <div class="context-menu-item" id="ctx-set-off" onclick="ctxSetOff()"><i class="fas fa-ban"></i> Set OFF</div>
+    <div class="context-menu-item" id="ctx-set-leave" onclick="ctxSetLeave()"><i class="fas fa-plane"></i> Set Leave</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctx-edit" onclick="ctxEdit()"><i class="fas fa-edit"></i> Edit</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- Navigation ----
+const pageIndex = {schedule:0, staff:1, locations:2, shifts:3, leave:4, dashboard:5, reports:6, settings:7};
+
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelectorAll('.nav-item')[pageIndex[page]].classList.add('active');
+
+    if (page === 'staff') loadStaff();
+    if (page === 'locations') loadLocations();
+    if (page === 'shifts') loadShiftsPage();
+    if (page === 'leave') loadLeavePage();
+    if (page === 'dashboard') initDashboard();
+    if (page === 'reports') initReportsPage();
+    if (page === 'settings') loadSettingsPage();
+}
+
+// ---- Dark Mode ----
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+    const btn = document.getElementById('dark-mode-btn');
+    btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+function initDarkMode() {
+    const pref = localStorage.getItem('darkMode');
+    if (pref === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('dark-mode-btn').innerHTML = '<i class="fas fa-sun"></i>';
+    }
+}
+
+// ---- Toast ----
+function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ---- Modal ----
+function showModal(title, bodyHtml, footerHtml, size) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-body').innerHTML = bodyHtml;
+    document.getElementById('modal-footer').innerHTML = footerHtml || '';
+    const box = document.getElementById('modal-box');
+    box.className = 'modal' + (size === 'lg' ? ' modal-lg' : size === 'xl' ? ' modal-xl' : '');
+    document.getElementById('modal-overlay').classList.add('show');
+}
+
+function hideModal() {
+    document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function closeModal(e) {
+    if (e.target === document.getElementById('modal-overlay')) hideModal();
+}
+
+// ---- API Helpers ----
+async function api(url, opts = {}) {
+    if (opts.body && typeof opts.body === 'object') {
+        opts.headers = {'Content-Type': 'application/json'};
+        opts.body = JSON.stringify(opts.body);
+    }
+    const res = await fetch(url, opts);
+    return res.json();
+}
+
+// ---- Schedule ----
+let currentScheduleId = null;
+let allLocations = [];
+let allShifts = [];
+let allStaff = [];
+let currentView = 'staff';
+let multiWeekMode = false;
+let lastScheduleData = null;
+
+// Context menu state
+let ctxAssignmentId = null;
+let ctxStaffName = '';
+let ctxDayDate = '';
+let ctxStatus = '';
+let ctxLocation = '';
+let ctxShift = '';
+
+// Drag & drop state
+let dragSourceCell = null;
+let dragSourceAssignmentId = null;
+let dragSourceRow = null;
+
+async function loadScheduleList() {
+    const schedules = await api('/api/schedules');
+    const sel = document.getElementById('schedule-select');
+    sel.innerHTML = '<option value="">Select a schedule...</option>';
+    schedules.forEach(s => {
+        sel.innerHTML += `<option value="${s.id}">${s.week_start} to ${s.week_end}${s.notes ? ' - ' + s.notes : ''}</option>`;
+    });
+
+    // Also populate dashboard schedule select
+    const dSel = document.getElementById('dashboard-schedule-select');
+    dSel.innerHTML = '<option value="">Select a schedule...</option>';
+    schedules.forEach(s => {
+        dSel.innerHTML += `<option value="${s.id}">${s.week_start} to ${s.week_end}${s.notes ? ' - ' + s.notes : ''}</option>`;
+    });
+
+    // Load stats
+    const staff = await api('/api/staff');
+    const locs = await api('/api/locations');
+    allLocations = locs;
+    allStaff = staff;
+    allShifts = await api('/api/shifts');
+
+    document.getElementById('stats-row').innerHTML = `
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-value">${staff.filter(s=>s.is_active).length}</div><div class="stat-label">Active Staff</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-store"></i></div><div class="stat-value">${locs.filter(l=>l.is_active).length}</div><div class="stat-label">Locations</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-value">${schedules.length}</div><div class="stat-label">Schedules</div></div>
+        <div class="stat-card"><div class="stat-icon"><i class="fas fa-clock"></i></div><div class="stat-value">${allShifts.length}</div><div class="stat-label">Shift Types</div></div>
+    `;
+
+    if (schedules.length > 0) {
+        sel.value = schedules[0].id;
+        loadSchedule();
+    }
+}
+
+async function loadSchedule() {
+    const sel = document.getElementById('schedule-select');
+    const id = sel.value;
+    if (!id) return;
+
+    currentScheduleId = parseInt(id);
+    document.getElementById('view-toggle').style.display = 'inline-flex';
+
+    if (multiWeekMode) {
+        loadMultiWeekView();
+    } else if (currentView === 'location') {
+        loadLocationView();
+    } else {
+        loadStaffView();
+    }
+
+    loadConflicts();
+    loadSwapBadge();
+}
+
+function getShiftDuration(shiftLabel) {
+    if (!shiftLabel || shiftLabel === '-') return '';
+    const shift = allShifts.find(s => s.label === shiftLabel);
+    if (!shift || !shift.start_time || !shift.end_time) return '';
+    try {
+        const [sh, sm] = shift.start_time.split(':').map(Number);
+        const [eh, em] = shift.end_time.split(':').map(Number);
+        let hours = eh - sh + (em - sm) / 60;
+        if (hours <= 0) hours += 24;
+        return `(${Math.round(hours)}h)`;
+    } catch(e) {
+        return '';
+    }
+}
+
+async function loadStaffView() {
+    const data = await api('/api/schedule/' + currentScheduleId);
+    lastScheduleData = data;
+
+    let html = buildScheduleTable(data);
+    document.getElementById('schedule-content').innerHTML = html;
+    attachDragDrop();
+}
+
+function buildScheduleTable(data) {
+    const totalStaff = data.staff ? data.staff.length : 0;
+    const workingPerDay = new Array(7).fill(0);
+
+    let html = '<table class="schedule-table"><thead><tr><th>Staff</th>';
+    data.days.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr></thead><tbody>';
+
+    data.staff.forEach(s => {
+        html += `<tr data-staff-name="${(s.name || '').toLowerCase()}"><td>${s.name}</td>`;
+        for (let i = 0; i < 7; i++) {
+            const d = s.days[String(i)];
+            if (d) {
+                const cls = getCellClass(d);
+                const duration = (d.status === 'assigned' || (d.status !== 'off' && d.status !== 'leave')) ? getShiftDuration(d.shift) : '';
+                if (d.status !== 'off' && d.status !== 'leave') {
+                    workingPerDay[i]++;
+                }
+                html += `<td draggable="true" data-assignment-id="${d.id}" data-staff-name="${s.name}" data-day-date="${d.day_date}" data-status="${d.status}" data-location="${d.location || ''}" data-shift="${d.shift || ''}" data-day-index="${i}" onclick="editCell(${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')" oncontextmenu="showContextMenu(event, ${d.id}, '${s.name.replace(/'/g, "\\'")}', '${d.day_date}', '${d.status}', '${d.location || ''}', '${d.shift || ''}')"><span class="cell-badge ${cls}">${d.text || '-'}${duration ? '<span class="cell-duration">' + duration + '</span>' : ''}</span></td>`;
+            } else {
+                html += '<td>-</td>';
+            }
+        }
+        html += '</tr>';
+    });
+
+    html += '</tbody>';
+
+    // Staff count footer
+    html += '<tfoot><tr><td>Working</td>';
+    for (let i = 0; i < 7; i++) {
+        html += `<td>${workingPerDay[i]}/${totalStaff}</td>`;
+    }
+    html += '</tr></tfoot>';
+
+    html += '</table>';
+    return html;
+}
+
+async function loadLocationView() {
+    const data = await api('/api/schedule/' + currentScheduleId + '/by-location');
+
+    let html = '<table class="schedule-table"><thead><tr><th>Location</th>';
+    if (data.days) {
+        data.days.forEach(d => html += `<th>${d}</th>`);
+    }
+    html += '</tr></thead><tbody>';
+
+    if (data.locations) {
+        data.locations.forEach(loc => {
+            html += `<tr data-staff-name="${(loc.name || '').toLowerCase()}"><td>${loc.name}</td>`;
+            for (let i = 0; i < 7; i++) {
+                const entries = (loc.days[String(i)] || []).slice().sort((a, b) => {
+                    return getShiftOrder(a.shift) - getShiftOrder(b.shift);
+                });
+                if (entries.length > 0) {
+                    const cellContent = entries.map(e => `<span class="cell-badge cell-assigned" style="font-size:10px;min-width:auto;margin:1px">${e.staff_name} (${e.shift || '-'})</span>`).join('<br>');
+                    html += `<td>${cellContent}</td>`;
+                } else {
+                    html += '<td><span class="cell-badge cell-off">-</span></td>';
+                }
+            }
+            html += '</tr>';
+        });
+    }
+
+    html += '</tbody></table>';
+    document.getElementById('schedule-content').innerHTML = html;
+}
+
+function setView(view) {
+    currentView = view;
+    const buttons = document.querySelectorAll('#view-toggle button');
+    buttons.forEach(b => b.classList.remove('active'));
+    if (view === 'staff') buttons[0].classList.add('active');
+    else if (view === 'location') buttons[1].classList.add('active');
+    else if (view === 'timings') buttons[2].classList.add('active');
+
+    if (currentScheduleId) {
+        if (view === 'location') loadLocationView();
+        else if (view === 'timings') loadTimingsView();
+        else loadStaffView();
+    }
+}
+
+async function loadTimingsView() {
+    const data = await api('/api/schedule/' + currentScheduleId + '/by-location');
+    const days = data.days || ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
+
+    // Branch color map
+    const branchColors = {
+        'MOO': {bg:'#991b1b', fg:'#fff'},
+        'MGM': {bg:'#fff200', fg:'#333'},
+        'SCC': {bg:'#831843', fg:'#fff'},
+        'AV': {bg:'#fed7aa', fg:'#9a3412'},
+        'CCC': {bg:'#d1fae5', fg:'#065f46'},
+        'QCC': {bg:'#dbeafe', fg:'#1e40af'},
+        'SALALAH': {bg:'#c8940a', fg:'#fff'},
+        'NIZWA': {bg:'#e9d5ff', fg:'#6b21a8'},
+        'Clinic': {bg:'#dbeafe', fg:'#1e40af'},
+        'Office': {bg:'#d1fae5', fg:'#065f46'}
+    };
+
+    // Shift time order for sorting
+    const shiftOrder = {'10-7':1, '11:30-8:30':2, '12-9':3, '1-10':4, '2-11':5, '3-12':6};
+    const shiftTimes = {
+        '10-7': '10:00 AM - 7:00 PM',
+        '11:30-8:30': '11:30 AM - 8:30 PM',
+        '12-9': '12:00 PM - 9:00 PM',
+        '1-10': '1:00 PM - 10:00 PM',
+        '2-11': '2:00 PM - 11:00 PM',
+        '3-12': '3:00 PM - 12:00 AM'
+    };
+
+    let html = '<div style="padding:16px">';
+    html += '<div style="display:flex;gap:8px;margin-bottom:16px;font-size:12px;color:#6b7280">';
+    html += '<span><i class="fas fa-clock" style="color:#6366f1"></i> Open: 10:00 AM</span>';
+    html += '<span style="margin-left:12px"><i class="fas fa-moon"></i> Sat-Wed: Close 10:00 PM</span>';
+    html += '<span style="margin-left:12px"><i class="fas fa-star" style="color:#c8940a"></i> Thu-Fri: Close 12:00 AM</span>';
+    html += '</div>';
+
+    if (data.locations) {
+        data.locations.forEach(loc => {
+            const colors = branchColors[loc.code] || {bg:'#eef2ff', fg:'#3730a3'};
+            html += `<div class="card" style="margin-bottom:16px">`;
+            html += `<div style="padding:12px 16px;background:${colors.bg};color:${colors.fg};border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center">`;
+            html += `<h3 style="font-size:15px;font-weight:700;margin:0">${loc.name} (${loc.code})</h3>`;
+            html += `<span style="font-size:12px;opacity:0.85">Min: ${loc.min} | Max: ${loc.max} staff</span>`;
+            html += `</div>`;
+            html += `<table class="data-table" style="margin:0"><thead><tr>`;
+            html += `<th style="width:100px">Day</th><th>Hours</th><th>Staff & Shifts</th><th style="width:60px">Count</th>`;
+            html += `</tr></thead><tbody>`;
+
+            for (let i = 0; i < 7; i++) {
+                const entries = (loc.days[String(i)] || []).slice().sort((a, b) => {
+                    return (shiftOrder[a.shift] || 99) - (shiftOrder[b.shift] || 99);
+                });
+                const isWeekend = i >= 5;
+                const closingTime = isWeekend ? '12:00 AM' : '10:00 PM';
+                const count = entries.length;
+                const countColor = count < loc.min ? '#ef4444' : count >= loc.min ? '#10b981' : '#6b7280';
+
+                html += `<tr>`;
+                html += `<td><strong>${days[i]}</strong>${isWeekend ? ' <span style="font-size:10px;color:#c8940a">&#9733;</span>' : ''}</td>`;
+                html += `<td style="font-size:12px;color:#6b7280">10:00 AM - ${closingTime}</td>`;
+                html += `<td>`;
+                if (entries.length > 0) {
+                    entries.forEach(e => {
+                        const time = shiftTimes[e.shift] || e.shift || '-';
+                        html += `<div style="display:inline-block;margin:2px 4px 2px 0;padding:3px 8px;background:#f3f4f6;border-radius:6px;font-size:11px">`;
+                        html += `<strong>${e.staff_name}</strong> <span style="color:#6b7280">${e.shift || '-'}</span> <span style="color:#9ca3af;font-size:10px">(${time})</span>`;
+                        html += `</div>`;
+                    });
+                } else {
+                    html += `<span style="color:#ef4444;font-size:12px"><i class="fas fa-exclamation-triangle"></i> No staff assigned</span>`;
+                }
+                html += `</td>`;
+                html += `<td style="text-align:center;font-weight:700;color:${countColor}">${count}</td>`;
+                html += `</tr>`;
+            }
+
+            html += `</tbody></table></div>`;
+        });
+    }
+
+    html += '</div>';
+    document.getElementById('schedule-content').innerHTML = html;
+}
+
+async function loadConflicts() {
+    if (!currentScheduleId) return;
+    try {
+        const data = await api('/api/schedule/' + currentScheduleId + '/conflicts');
+        const area = document.getElementById('conflict-banner-area');
+        if (data.conflicts && data.conflicts.length > 0) {
+            const severity = data.conflicts.length > 3 ? 'error' : 'warning';
+            area.innerHTML = `<div class="conflict-banner ${severity}"><i class="fas fa-exclamation-triangle"></i><div><strong>${data.conflicts.length} conflict${data.conflicts.length > 1 ? 's' : ''} found.</strong> ${data.conflicts.map(c => c.message || c).join(' | ')}</div></div>`;
+        } else {
+            area.innerHTML = '';
+        }
+    } catch(e) {
+        document.getElementById('conflict-banner-area').innerHTML = '';
+    }
+}
+
+async function loadSwapBadge() {
+    if (!currentScheduleId) return;
+    try {
+        const swaps = await api('/api/swaps?schedule_id=' + currentScheduleId);
+        const pending = (swaps || []).filter(s => s.status === 'pending');
+        const badge = document.getElementById('swap-badge');
+        if (pending.length > 0) {
+            badge.textContent = pending.length;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch(e) {
+        document.getElementById('swap-badge').style.display = 'none';
+    }
+}
+
+function getShiftOrder(shiftLabel) {
+    const order = {'1-10': 1, '2-11': 2, '3-12': 3, '10-7': 4, '11:30-8:30': 5, '12-9': 6};
+    return order[shiftLabel] || 99;
+}
+
+function getCellClass(d) {
+    if (d.status === 'off') return 'cell-off';
+    if (d.status === 'leave') return 'cell-leave';
+    const loc = (d.location || '').toUpperCase();
+    if (loc === 'CLINIC') return 'cell-clinic';
+    if (loc === 'OFFICE') return 'cell-office';
+    if (loc === 'SALALAH') return 'cell-salalah';
+    if (loc === 'NIZWA') return 'cell-nizwa';
+    if (loc === 'MOO') return 'cell-moo';
+    if (loc === 'MGM') return 'cell-mgm';
+    if (loc === 'SCC') return 'cell-scc';
+    if (loc === 'AV') return 'cell-av';
+    if (loc === 'CCC') return 'cell-ccc';
+    if (loc === 'QCC') return 'cell-qcc';
+    return 'cell-assigned';
+}
+
+// ---- Search / Filter ----
+function filterScheduleRows() {
+    const query = (document.getElementById('schedule-search').value || '').toLowerCase();
+    const rows = document.querySelectorAll('#schedule-content tbody tr[data-staff-name]');
+    rows.forEach(row => {
+        const name = row.getAttribute('data-staff-name') || '';
+        row.style.display = name.includes(query) ? '' : 'none';
+    });
+}
+
+function filterStaffRows() {
+    const query = (document.getElementById('staff-search').value || '').toLowerCase();
+    const rows = document.querySelectorAll('#staff-table-body tr');
+    rows.forEach(row => {
+        const name = (row.querySelector('td:first-child') || {}).textContent || '';
+        row.style.display = name.toLowerCase().includes(query) ? '' : 'none';
+    });
+}
+
+// ---- Context Menu (Quick OFF Toggle) ----
+function showContextMenu(e, assignmentId, staffName, dayDate, status, location, shift) {
+    e.preventDefault();
+    e.stopPropagation();
+    ctxAssignmentId = assignmentId;
+    ctxStaffName = staffName;
+    ctxDayDate = dayDate;
+    ctxStatus = status;
+    ctxLocation = location;
+    ctxShift = shift;
+
+    const menu = document.getElementById('context-menu');
+    menu.style.left = e.clientX + 'px';
+    menu.style.top = e.clientY + 'px';
+    menu.classList.add('show');
+}
+
+document.addEventListener('click', () => {
+    document.getElementById('context-menu').classList.remove('show');
+});
+
+async function ctxSetOff() {
+    document.getElementById('context-menu').classList.remove('show');
+    if (!ctxAssignmentId) return;
+    await api('/api/assignment/' + ctxAssignmentId + '/update', {
+        method: 'POST',
+        body: {status: 'off', location_id: null, shift_id: null}
+    });
+    toast('Set to OFF');
+    loadSchedule();
+}
+
+async function ctxSetLeave() {
+    document.getElementById('context-menu').classList.remove('show');
+    if (!ctxAssignmentId) return;
+    await api('/api/assignment/' + ctxAssignmentId + '/update', {
+        method: 'POST',
+        body: {status: 'leave', location_id: null, shift_id: null}
+    });
+    toast('Set to Leave');
+    loadSchedule();
+}
+
+function ctxEdit() {
+    document.getElementById('context-menu').classList.remove('show');
+    if (!ctxAssignmentId) return;
+    editCell(ctxAssignmentId, ctxStaffName, ctxDayDate, ctxStatus, ctxLocation, ctxShift);
+}
+
+// ---- Drag & Drop ----
+function attachDragDrop() {
+    const cells = document.querySelectorAll('#schedule-content tbody td[draggable="true"]');
+    cells.forEach(cell => {
+        cell.addEventListener('dragstart', onDragStart);
+        cell.addEventListener('dragover', onDragOver);
+        cell.addEventListener('dragenter', onDragEnter);
+        cell.addEventListener('dragleave', onDragLeave);
+        cell.addEventListener('drop', onDrop);
+        cell.addEventListener('dragend', onDragEnd);
+    });
+}
+
+function onDragStart(e) {
+    dragSourceCell = e.currentTarget;
+    dragSourceAssignmentId = e.currentTarget.dataset.assignmentId;
+    dragSourceRow = e.currentTarget.closest('tr');
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', dragSourceAssignmentId);
+}
+
+function onDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragEnter(e) {
+    e.preventDefault();
+    const target = e.currentTarget;
+    // Only allow dropping on cells in the same row
+    if (target.closest('tr') === dragSourceRow && target !== dragSourceCell && target.dataset.assignmentId) {
+        target.classList.add('drag-over');
+    }
+}
+
+function onDragLeave(e) {
+    e.currentTarget.classList.remove('drag-over');
+}
+
+async function onDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+
+    const target = e.currentTarget;
+    // Only swap within same row
+    if (!dragSourceCell || target === dragSourceCell) return;
+    if (target.closest('tr') !== dragSourceRow) return;
+    if (!target.dataset.assignmentId) return;
+
+    const sourceId = dragSourceAssignmentId;
+    const targetId = target.dataset.assignmentId;
+
+    // Read current data from both cells
+    const sourceStatus = dragSourceCell.dataset.status;
+    const sourceLocation = dragSourceCell.dataset.location;
+    const sourceShift = dragSourceCell.dataset.shift;
+    const targetStatus = target.dataset.status;
+    const targetLocation = target.dataset.location;
+    const targetShift = target.dataset.shift;
+
+    // Find location and shift IDs
+    function findLocId(code) {
+        if (!code) return null;
+        const loc = allLocations.find(l => l.short_code === code || l.name === code);
+        return loc ? loc.id : null;
+    }
+    function findShiftId(label) {
+        if (!label) return null;
+        const s = allShifts.find(sh => sh.label === label);
+        return s ? s.id : null;
+    }
+
+    toast('Swapping assignments...');
+
+    // Swap: update source with target's data and vice versa
+    await Promise.all([
+        api('/api/assignment/' + sourceId + '/update', {
+            method: 'POST',
+            body: {status: targetStatus, location_id: findLocId(targetLocation), shift_id: findShiftId(targetShift)}
+        }),
+        api('/api/assignment/' + targetId + '/update', {
+            method: 'POST',
+            body: {status: sourceStatus, location_id: findLocId(sourceLocation), shift_id: findShiftId(sourceShift)}
+        })
+    ]);
+
+    toast('Assignments swapped');
+    loadSchedule();
+}
+
+function onDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    dragSourceCell = null;
+    dragSourceAssignmentId = null;
+    dragSourceRow = null;
+}
+
+// ---- Multi-Week View ----
+function toggleMultiWeek() {
+    multiWeekMode = !multiWeekMode;
+    const btn = document.getElementById('btn-multi-week');
+    if (multiWeekMode) {
+        btn.classList.remove('btn-outline');
+        btn.classList.add('btn-primary');
+        if (currentScheduleId) loadMultiWeekView();
+    } else {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
+        if (currentScheduleId) loadStaffView();
+    }
+}
+
+async function loadMultiWeekView() {
+    if (!currentScheduleId) return;
+
+    // Get current schedule info to find the week_start
+    const schedules = await api('/api/schedules');
+    const current = schedules.find(s => s.id === currentScheduleId);
+    if (!current) return;
+
+    const weekStart = new Date(current.week_start);
+    const weeksToShow = 4;
+    let html = '';
+
+    for (let w = 0; w < weeksToShow; w++) {
+        const wDate = new Date(weekStart);
+        wDate.setDate(weekStart.getDate() + w * 7);
+        const wDateStr = wDate.toISOString().slice(0, 10);
+        const wEnd = new Date(wDate);
+        wEnd.setDate(wDate.getDate() + 6);
+        const wEndStr = wEnd.toISOString().slice(0, 10);
+
+        // Find matching schedule
+        const sched = schedules.find(s => s.week_start === wDateStr);
+
+        html += `<div class="multi-week-header">Week ${w + 1}: ${wDateStr} to ${wEndStr}${sched ? '' : ' (No schedule)'}</div>`;
+
+        if (sched) {
+            const data = await api('/api/schedule/' + sched.id);
+            html += `<div style="border:1px solid var(--card-border);border-top:none;border-radius:0 0 8px 8px;overflow:auto;margin-bottom:8px">${buildScheduleTable(data)}</div>`;
+        } else {
+            html += `<div style="border:1px solid var(--card-border);border-top:none;border-radius:0 0 8px 8px;padding:24px;text-align:center;color:var(--muted);margin-bottom:8px">No schedule for this week</div>`;
+        }
+    }
+
+    document.getElementById('schedule-content').innerHTML = html;
+}
+
+function showGenerateModal() {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = (6 - day) % 7;
+    const nextSat = new Date(today);
+    nextSat.setDate(today.getDate() + (diff === 0 && day !== 6 ? 7 : diff));
+    const dateStr = nextSat.toISOString().slice(0, 10);
+
+    showModal('Generate Schedule', `
+        <div class="form-group">
+            <label>Week Starting (Saturday)</label>
+            <input type="date" id="gen-date" value="${dateStr}">
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="generateSchedule()"><i class="fas fa-magic"></i> Generate</button>
+    `);
+}
+
+async function generateSchedule() {
+    const date = document.getElementById('gen-date').value;
+    hideModal();
+    toast('Generating schedule...');
+    const res = await api('/api/schedule/generate', {method: 'POST', body: {week_start: date}});
+    if (res.success) {
+        toast('Schedule generated!');
+        await loadScheduleList();
+    } else {
+        toast('Error: ' + res.error);
+    }
+}
+
+async function deleteSchedule() {
+    if (!currentScheduleId) return;
+    if (!confirm('Delete this schedule?')) return;
+    await api('/api/schedule/' + currentScheduleId + '/delete', {method: 'DELETE'});
+    currentScheduleId = null;
+    document.getElementById('schedule-content').innerHTML = '<div class="empty-state"><i class="fas fa-calendar-plus"></i><p>Schedule deleted.</p></div>';
+    document.getElementById('conflict-banner-area').innerHTML = '';
+    document.getElementById('view-toggle').style.display = 'none';
+    toast('Schedule deleted');
+    loadScheduleList();
+}
+
+function exportPDF() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    window.open('/api/schedule/' + currentScheduleId + '/pdf', '_blank');
+    toast('PDF downloading...');
+}
+
+function exportExcel() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    window.open('/api/schedule/' + currentScheduleId + '/excel', '_blank');
+    toast('Excel downloading...');
+}
+
+// ---- AI Optimizer ----
+function showOptimizeModal() {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = (6 - day) % 7;
+    const nextSat = new Date(today);
+    nextSat.setDate(today.getDate() + (diff === 0 && day !== 6 ? 7 : diff));
+    const dateStr = nextSat.toISOString().slice(0, 10);
+
+    showModal('AI Optimize Schedule', `
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Run the AI optimizer to find the best schedule configuration.</p>
+        <div class="form-group">
+            <label>Week Starting (Saturday)</label>
+            <input type="date" id="opt-date" value="${dateStr}">
+        </div>
+        <div class="form-group">
+            <label>Iterations (1-10)</label>
+            <input type="number" id="opt-iterations" value="5" min="1" max="10">
+        </div>
+        <div id="opt-result" style="display:none;margin-top:16px;padding:16px;border:1px solid var(--card-border);border-radius:8px;background:var(--schedule-name-bg)">
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:8px"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px"></i>Optimization Complete</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:8px">
+                <div><div style="font-size:11px;color:var(--muted)">Score</div><div style="font-size:20px;font-weight:700" id="opt-score">--</div></div>
+                <div><div style="font-size:11px;color:var(--muted)">Coverage</div><div style="font-size:20px;font-weight:700" id="opt-coverage">--</div></div>
+                <div><div style="font-size:11px;color:var(--muted)">Conflicts</div><div style="font-size:20px;font-weight:700" id="opt-conflicts">--</div></div>
+            </div>
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-warning" id="opt-run-btn" onclick="runOptimize()"><i class="fas fa-brain"></i> Run Optimizer</button>
+        <button class="btn btn-primary" id="opt-load-btn" onclick="loadOptimizedSchedule()" style="display:none"><i class="fas fa-check"></i> Load Schedule</button>
+    `);
+}
+
+let optimizedScheduleId = null;
+
+async function runOptimize() {
+    const date = document.getElementById('opt-date').value;
+    const iterations = parseInt(document.getElementById('opt-iterations').value) || 5;
+
+    if (!date) return toast('Please select a date');
+
+    document.getElementById('opt-run-btn').disabled = true;
+    document.getElementById('opt-run-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimizing...';
+    toast('Running AI optimizer...');
+
+    try {
+        const res = await api('/api/schedule/optimize', {
+            method: 'POST',
+            body: {week_start: date, iterations: Math.min(Math.max(iterations, 1), 10)}
+        });
+
+        if (res.success) {
+            optimizedScheduleId = res.schedule_id;
+            document.getElementById('opt-score').textContent = res.score || '--';
+            document.getElementById('opt-coverage').textContent = (res.coverage != null ? res.coverage + '%' : '--');
+            document.getElementById('opt-conflicts').textContent = res.conflicts != null ? res.conflicts : '--';
+            document.getElementById('opt-result').style.display = 'block';
+            document.getElementById('opt-load-btn').style.display = 'inline-flex';
+            toast('Optimization complete!');
+        } else {
+            toast('Error: ' + (res.error || 'Optimization failed'));
+        }
+    } catch(e) {
+        toast('Error running optimizer');
+    }
+
+    document.getElementById('opt-run-btn').disabled = false;
+    document.getElementById('opt-run-btn').innerHTML = '<i class="fas fa-brain"></i> Run Again';
+}
+
+async function loadOptimizedSchedule() {
+    if (!optimizedScheduleId) return;
+    hideModal();
+    await loadScheduleList();
+    const sel = document.getElementById('schedule-select');
+    sel.value = optimizedScheduleId;
+    loadSchedule();
+    toast('Optimized schedule loaded');
+}
+
+// ---- Copy Week ----
+function showCopyWeekModal() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    const today = new Date();
+    const day = today.getDay();
+    const diff = (6 - day) % 7;
+    const nextSat = new Date(today);
+    nextSat.setDate(today.getDate() + (diff === 0 && day !== 6 ? 7 : diff) + 7);
+    const dateStr = nextSat.toISOString().slice(0, 10);
+
+    showModal('Copy Week', `
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Copy the current schedule to a new week.</p>
+        <div class="form-group">
+            <label>New Week Start Date (Saturday)</label>
+            <input type="date" id="copy-date" value="${dateStr}">
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="copyWeek()"><i class="fas fa-copy"></i> Copy</button>
+    `);
+}
+
+async function copyWeek() {
+    const newDate = document.getElementById('copy-date').value;
+    if (!newDate) return toast('Please select a date');
+    hideModal();
+    toast('Copying schedule...');
+    const res = await api('/api/schedule/' + currentScheduleId + '/copy', {method: 'POST', body: {week_start: newDate}});
+    if (res.success || res.id) {
+        toast('Schedule copied!');
+        await loadScheduleList();
+    } else {
+        toast('Error: ' + (res.error || 'Failed to copy'));
+    }
+}
+
+// ---- WhatsApp Share ----
+async function showWhatsApp() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    toast('Loading messages...');
+    const data = await api('/api/schedule/' + currentScheduleId + '/messages');
+    const messages = data.messages || data || [];
+
+    let body = '';
+    if (messages.length === 0) {
+        body = '<p style="color:#9ca3af">No messages available.</p>';
+    } else {
+        messages.forEach((m, i) => {
+            body += `<div class="wa-msg-block">
+                <div class="wa-staff"><i class="fas fa-user" style="margin-right:6px;color:#6366f1"></i>${m.staff || m.name || 'Staff ' + (i+1)}</div>
+                <textarea id="wa-msg-${i}" readonly>${m.message || m.text || ''}</textarea>
+                <button class="btn btn-sm btn-outline" onclick="copyWaMsg(${i})"><i class="fas fa-copy"></i> Copy</button>
+            </div>`;
+        });
+    }
+
+    showModal('WhatsApp Share', body, `
+        <button class="btn btn-outline" onclick="hideModal()">Close</button>
+        ${messages.length > 0 ? '<button class="btn btn-success" onclick="copyAllWaMsgs(' + messages.length + ')"><i class="fab fa-whatsapp"></i> Copy All</button>' : ''}
+    `, 'lg');
+}
+
+function copyWaMsg(idx) {
+    const ta = document.getElementById('wa-msg-' + idx);
+    navigator.clipboard.writeText(ta.value);
+    toast('Message copied!');
+}
+
+function copyAllWaMsgs(count) {
+    let all = '';
+    for (let i = 0; i < count; i++) {
+        const ta = document.getElementById('wa-msg-' + i);
+        if (ta) all += ta.value + '\n\n---\n\n';
+    }
+    navigator.clipboard.writeText(all.trim());
+    toast('All messages copied!');
+}
+
+// ---- Swap Requests ----
+async function showSwaps() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    const swaps = await api('/api/swaps?schedule_id=' + currentScheduleId);
+
+    let body = '<h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Create Swap Request</h4>';
+    let staffOpts = '<option value="">Select staff...</option>';
+    allStaff.filter(s => s.is_active).forEach(s => {
+        staffOpts += `<option value="${s.id}">${s.name}</option>`;
+    });
+
+    body += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--card-border)">
+        <div class="form-group" style="margin-bottom:0"><label>Requester</label><select id="swap-requester">${staffOpts}</select></div>
+        <div class="form-group" style="margin-bottom:0"><label>Requester Date</label><input type="date" id="swap-req-date"></div>
+        <div class="form-group" style="margin-bottom:0"><label>Target Staff</label><select id="swap-target">${staffOpts}</select></div>
+        <div class="form-group" style="margin-bottom:0"><label>Target Date</label><input type="date" id="swap-tgt-date"></div>
+    </div>
+    <div style="margin-bottom:20px;text-align:right">
+        <button class="btn btn-primary btn-sm" onclick="createSwap()"><i class="fas fa-plus"></i> Create Swap</button>
+    </div>`;
+
+    body += '<h4 style="font-size:14px;font-weight:600;margin-bottom:12px">Pending Swaps</h4>';
+
+    if (!swaps || swaps.length === 0) {
+        body += '<p style="color:#9ca3af;font-size:13px">No swap requests.</p>';
+    } else {
+        body += '<table class="data-table"><thead><tr><th>Requester</th><th>Date</th><th>Target</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+        swaps.forEach(s => {
+            const isPending = s.status === 'pending';
+            body += `<tr>
+                <td>${s.requester_name || s.requester_staff_id}</td>
+                <td>${s.requester_date}</td>
+                <td>${s.target_name || s.target_staff_id}</td>
+                <td>${s.target_date}</td>
+                <td><span class="badge badge-${s.status === 'approved' ? 'approved' : s.status === 'rejected' ? 'rejected' : 'pending'}">${s.status}</span></td>
+                <td class="actions-cell">${isPending ? `
+                    <button class="btn btn-sm btn-success" onclick="approveSwap(${s.id})"><i class="fas fa-check"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="rejectSwap(${s.id})"><i class="fas fa-times"></i></button>
+                ` : '-'}</td>
+            </tr>`;
+        });
+        body += '</tbody></table>';
+    }
+
+    showModal('Swap Requests', body, '<button class="btn btn-outline" onclick="hideModal()">Close</button>', 'lg');
+}
+
+async function createSwap() {
+    const reqId = document.getElementById('swap-requester').value;
+    const reqDate = document.getElementById('swap-req-date').value;
+    const tgtId = document.getElementById('swap-target').value;
+    const tgtDate = document.getElementById('swap-tgt-date').value;
+    if (!reqId || !reqDate || !tgtId || !tgtDate) return toast('All fields required');
+    if (reqId === tgtId) return toast('Cannot swap with self');
+
+    const res = await api('/api/swaps', {method: 'POST', body: {
+        schedule_id: currentScheduleId,
+        requester_staff_id: parseInt(reqId),
+        requester_date: reqDate,
+        target_staff_id: parseInt(tgtId),
+        target_date: tgtDate
+    }});
+
+    if (res.error) return toast('Error: ' + res.error);
+    toast('Swap request created');
+    hideModal();
+    showSwaps();
+    loadSwapBadge();
+}
+
+async function approveSwap(id) {
+    await api('/api/swap/' + id + '/approve', {method: 'POST'});
+    toast('Swap approved');
+    hideModal();
+    loadSchedule();
+}
+
+async function rejectSwap(id) {
+    await api('/api/swap/' + id + '/reject', {method: 'POST'});
+    toast('Swap rejected');
+    hideModal();
+    loadSwapBadge();
+}
+
+// ---- History ----
+async function showHistory() {
+    if (!currentScheduleId) return toast('No schedule loaded');
+    const data = await api('/api/schedule/' + currentScheduleId + '/history');
+    const entries = data.history || data || [];
+
+    let body = '';
+    if (entries.length === 0) {
+        body = '<p style="color:#9ca3af;font-size:13px">No history entries yet.</p>';
+    } else {
+        entries.forEach(h => {
+            body += `<div class="history-item">
+                <div class="history-time"><i class="fas fa-clock" style="margin-right:4px"></i>${h.timestamp || h.created_at || ''}</div>
+                <div class="history-text">${h.description || h.message || h.action || JSON.stringify(h)}</div>
+            </div>`;
+        });
+    }
+
+    showModal('Schedule History', body, '<button class="btn btn-outline" onclick="hideModal()">Close</button>', 'lg');
+}
+
+// ---- Edit Cell ----
+function editCell(assignmentId, staffName, dayDate, status, location, shift) {
+    let locOptions = '<option value="">-</option>';
+    allLocations.forEach(l => {
+        const sel = l.short_code === location ? 'selected' : '';
+        locOptions += `<option value="${l.id}" ${sel}>${l.short_code} - ${l.name}</option>`;
+    });
+
+    let shiftOptions = '<option value="">-</option>';
+    allShifts.forEach(s => {
+        const sel = s.label === shift ? 'selected' : '';
+        shiftOptions += `<option value="${s.id}" ${sel}>${s.label}</option>`;
+    });
+
+    showModal(`Edit: ${staffName} - ${dayDate}`, `
+        <div class="form-group">
+            <label>Status</label>
+            <select id="edit-status" onchange="toggleEditFields()">
+                <option value="assigned" ${status==='assigned'?'selected':''}>Assigned</option>
+                <option value="off" ${status==='off'?'selected':''}>OFF</option>
+                <option value="leave" ${status==='leave'?'selected':''}>Leave</option>
+            </select>
+        </div>
+        <div id="edit-fields">
+            <div class="form-group">
+                <label>Location</label>
+                <select id="edit-location">${locOptions}</select>
+            </div>
+            <div class="form-group">
+                <label>Shift</label>
+                <select id="edit-shift">${shiftOptions}</select>
+            </div>
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCell(${assignmentId})"><i class="fas fa-check"></i> Save</button>
+    `);
+    toggleEditFields();
+}
+
+function toggleEditFields() {
+    const status = document.getElementById('edit-status').value;
+    document.getElementById('edit-fields').style.display = status === 'assigned' ? 'block' : 'none';
+}
+
+async function saveCell(assignmentId) {
+    const status = document.getElementById('edit-status').value;
+    const locId = status === 'assigned' ? (document.getElementById('edit-location').value || null) : null;
+    const shiftId = status === 'assigned' ? (document.getElementById('edit-shift').value || null) : null;
+
+    await api('/api/assignment/' + assignmentId + '/update', {
+        method: 'POST',
+        body: {status, location_id: locId ? parseInt(locId) : null, shift_id: shiftId ? parseInt(shiftId) : null}
+    });
+
+    hideModal();
+    toast('Assignment updated');
+    loadSchedule();
+}
+
+// ---- Staff ----
+async function loadStaff() {
+    const staff = await api('/api/staff');
+    allStaff = staff;
+    // Refresh shifts & locations so the Add/Edit Staff dropdowns reflect the DB.
+    try {
+        allShifts = await api('/api/shifts');
+        allLocations = await api('/api/locations');
+    } catch (e) { /* keep cached */ }
+    const body = document.getElementById('staff-table-body');
+    body.innerHTML = staff.map(s => {
+        const tag = s.staff_tag || 'Regular';
+        const tagClass = tag === 'Senior' ? 'badge-tag-senior' : tag === 'Trainee' ? 'badge-tag-trainee' : 'badge-tag-regular';
+        const maxHrs = s.overtime_max_hours || 45;
+        return `<tr>
+            <td><strong>${s.name}</strong></td>
+            <td><span class="badge ${tagClass}">${tag}</span></td>
+            <td>${s.default_location ? `<span class="badge badge-info">${s.default_location}</span>` : '-'}</td>
+            <td>${s.default_role ? `<span class="badge badge-info">${s.default_role}</span>` : '-'}</td>
+            <td>${s.shift_preference && s.shift_preference !== 'Any' ? `<span class="badge badge-info">${s.shift_preference}</span>` : 'Any'}</td>
+            <td>${maxHrs}h</td>
+            <td><span class="badge ${s.is_active ? 'badge-active' : 'badge-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td class="actions-cell">
+                <button class="btn btn-ghost" onclick="showAvailability(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Availability"><i class="fas fa-calendar-check" style="color:#6366f1"></i></button>
+                <button class="btn btn-ghost" onclick="editStaff(${s.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-ghost" onclick="deleteStaff(${s.id}, '${s.name.replace(/'/g, "\\'")}')" ><i class="fas fa-trash" style="color:#ef4444"></i></button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function showAddStaffModal(staff = null) {
+    const locs = allLocations.length ? allLocations : [];
+    let locOpts = '<option value="">None</option>';
+    locs.forEach(l => {
+        const sel = staff && staff.default_location === l.name ? 'selected' : '';
+        locOpts += `<option value="${l.name}" ${sel}>${l.name}</option>`;
+    });
+
+    // Suggestions for the free-text Fixed Role field (user can also type their own)
+    const roleVals = [...new Set(['Clinic', 'Office', ...locs.map(l => l.name)])];
+    const roleSuggestions = roleVals.map(v => `<option value="${v.replace(/"/g, '&quot;')}">`).join('');
+    const currentRole = staff && staff.default_role ? staff.default_role.replace(/"/g, '&quot;') : '';
+
+    // Shift-preference options come from the actual shifts in the database.
+    const curPref = (staff && staff.shift_preference) ? staff.shift_preference : 'Any';
+    let prefOpts = `<option value="Any" ${curPref === 'Any' ? 'selected' : ''}>Any</option>`;
+    (allShifts || []).forEach(sh => {
+        const sel = curPref === sh.label ? 'selected' : '';
+        const time = (sh.start_time && sh.end_time) ? ` (${sh.start_time}–${sh.end_time})` : '';
+        prefOpts += `<option value="${sh.label.replace(/"/g, '&quot;')}" ${sel}>${sh.label}${time}</option>`;
+    });
+    // Keep a previously-saved preference visible even if that shift was removed.
+    if (curPref !== 'Any' && !(allShifts || []).some(sh => sh.label === curPref)) {
+        prefOpts += `<option value="${curPref.replace(/"/g, '&quot;')}" selected>${curPref}</option>`;
+    }
+
+    const currentTag = staff ? (staff.staff_tag || 'Regular') : 'Regular';
+    const currentMax = staff ? (staff.overtime_max_hours || 45) : 45;
+
+    showModal(staff ? 'Edit Staff' : 'Add Staff', `
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="staff-name" value="${staff ? staff.name : ''}" placeholder="Enter staff name">
+        </div>
+        <div class="form-group">
+            <label>Tag</label>
+            <select id="staff-tag">
+                <option value="Regular" ${currentTag==='Regular'?'selected':''}>Regular</option>
+                <option value="Senior" ${currentTag==='Senior'?'selected':''}>Senior</option>
+                <option value="Trainee" ${currentTag==='Trainee'?'selected':''}>Trainee</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Fixed Location</label>
+            <select id="staff-location">${locOpts}</select>
+        </div>
+        <div class="form-group">
+            <label>Fixed Role / Place</label>
+            <input type="text" id="staff-role" list="role-suggestions" value="${currentRole}" placeholder="Optional — type any role/place (e.g. Clinic, Office, Lab)">
+            <datalist id="role-suggestions">${roleSuggestions}</datalist>
+        </div>
+        <div class="form-group">
+            <label>Shift Preference</label>
+            <select id="staff-shift-pref">${prefOpts}</select>
+        </div>
+        <div class="form-group">
+            <label>Max Hours/Week</label>
+            <input type="number" id="staff-max-hours" value="${currentMax}" min="20" max="80" placeholder="45">
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveStaff(${staff ? staff.id : 'null'})">${staff ? 'Update' : 'Add'}</button>
+    `);
+}
+
+async function saveStaff(id) {
+    const name = document.getElementById('staff-name').value;
+    const loc = document.getElementById('staff-location').value;
+    const role = document.getElementById('staff-role').value;
+    const pref = document.getElementById('staff-shift-pref').value;
+    const tag = document.getElementById('staff-tag').value;
+    const maxHours = parseInt(document.getElementById('staff-max-hours').value) || 45;
+
+    if (!name) return toast('Name is required');
+
+    const body = {
+        name,
+        default_location: loc,
+        default_role: role,
+        is_active: true,
+        shift_preference: pref,
+        staff_tag: tag,
+        overtime_max_hours: maxHours
+    };
+
+    if (id) {
+        await api('/api/staff/' + id + '/update', {method: 'POST', body});
+    } else {
+        await api('/api/staff/add', {method: 'POST', body});
+    }
+
+    hideModal();
+    toast(id ? 'Staff updated' : 'Staff added');
+    loadStaff();
+}
+
+async function editStaff(id) {
+    const staff = (await api('/api/staff')).find(s => s.id === id);
+    if (staff) showAddStaffModal(staff);
+}
+
+async function deleteStaff(id, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    await api('/api/staff/' + id + '/delete', {method: 'DELETE'});
+    toast('Staff deleted');
+    loadStaff();
+}
+
+// ---- Staff Availability ----
+async function showAvailability(staffId, staffName) {
+    // Get current availability
+    let current = [];
+    try {
+        const res = await api('/api/staff/' + staffId + '/availability');
+        current = res.dates || res.availability || res || [];
+    } catch(e) {}
+
+    // Build next 14 days (current + next week)
+    const today = new Date();
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let daysHtml = '';
+
+    for (let i = 0; i < 14; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() + i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const isAvail = Array.isArray(current) && current.includes(dateStr);
+        daysHtml += `<div class="avail-day ${isAvail ? 'active' : ''}" onclick="toggleAvailDay(this, '${dateStr}')" data-date="${dateStr}">
+            <div class="day-label">${dayNames[d.getDay()]}</div>
+            ${d.getDate()}/${d.getMonth()+1}
+        </div>`;
+    }
+
+    showModal(`Availability: ${staffName}`, `
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Click days to toggle availability. Green = available.</p>
+        <div class="avail-grid" style="grid-template-columns:repeat(7,1fr)">${daysHtml}</div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAvailability(${staffId})"><i class="fas fa-check"></i> Save</button>
+    `, 'lg');
+}
+
+function toggleAvailDay(el, date) {
+    el.classList.toggle('active');
+}
+
+async function saveAvailability(staffId) {
+    const days = document.querySelectorAll('.avail-day.active');
+    const dates = Array.from(days).map(d => d.dataset.date);
+
+    await api('/api/staff/' + staffId + '/availability', {method: 'POST', body: {dates}});
+    hideModal();
+    toast('Availability updated');
+}
+
+// ---- Locations ----
+async function loadLocations() {
+    const locs = await api('/api/locations');
+    allLocations = locs;
+    const body = document.getElementById('locations-table-body');
+    body.innerHTML = locs.map(l => `
+        <tr>
+            <td><strong>${l.name}</strong></td>
+            <td><span class="badge badge-info">${l.short_code}</span></td>
+            <td>${l.min_staff}</td>
+            <td>${l.max_staff}</td>
+            <td><span class="badge ${l.is_active ? 'badge-active' : 'badge-inactive'}">${l.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td class="actions-cell">
+                <button class="btn btn-ghost" onclick="editLocation(${l.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-ghost" onclick="deleteLocation(${l.id}, '${l.name.replace(/'/g, "\\'")}')" ><i class="fas fa-trash" style="color:#ef4444"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showAddLocationModal(loc = null) {
+    showModal(loc ? 'Edit Location' : 'Add Location', `
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="loc-name" value="${loc ? loc.name : ''}" placeholder="e.g. Muscat City Centre">
+        </div>
+        <div class="form-group">
+            <label>Short Code</label>
+            <input type="text" id="loc-code" value="${loc ? loc.short_code : ''}" placeholder="e.g. MCC">
+        </div>
+        <div class="form-group">
+            <label>Min Staff</label>
+            <input type="number" id="loc-min" value="${loc ? loc.min_staff : 1}" min="0" max="10">
+        </div>
+        <div class="form-group">
+            <label>Max Staff</label>
+            <input type="number" id="loc-max" value="${loc ? loc.max_staff : 3}" min="1" max="10">
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveLocation(${loc ? loc.id : 'null'})">${loc ? 'Update' : 'Add'}</button>
+    `);
+}
+
+async function saveLocation(id) {
+    const name = document.getElementById('loc-name').value;
+    const code = document.getElementById('loc-code').value;
+    const min = parseInt(document.getElementById('loc-min').value);
+    const max = parseInt(document.getElementById('loc-max').value);
+
+    if (!name || !code) return toast('Name and code required');
+
+    if (id) {
+        await api('/api/location/' + id + '/update', {method: 'POST', body: {name, short_code: code, min_staff: min, max_staff: max, is_active: true}});
+    } else {
+        await api('/api/location/add', {method: 'POST', body: {name, short_code: code, min_staff: min, max_staff: max}});
+    }
+
+    hideModal();
+    toast(id ? 'Location updated' : 'Location added');
+    loadLocations();
+}
+
+async function editLocation(id) {
+    const loc = allLocations.find(l => l.id === id);
+    if (loc) showAddLocationModal(loc);
+}
+
+async function deleteLocation(id, name) {
+    if (!confirm(`Delete "${name}"?`)) return;
+    await api('/api/location/' + id + '/delete', {method: 'DELETE'});
+    toast('Location deleted');
+    loadLocations();
+}
+
+// ---- Shifts ----
+async function loadShiftsPage() {
+    const shifts = await api('/api/shifts');
+    allShifts = shifts;
+    const body = document.getElementById('shifts-table-body');
+    if (!shifts.length) {
+        body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">No shifts yet. Click "Add Shift" to create one.</td></tr>`;
+        return;
+    }
+    body.innerHTML = shifts.map(s => `
+        <tr>
+            <td><strong>${s.label}</strong></td>
+            <td>${s.start_time || '-'}</td>
+            <td>${s.end_time || '-'}</td>
+            <td class="actions-cell">
+                <button class="btn btn-ghost" onclick="editShift(${s.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-ghost" onclick="deleteShift(${s.id}, '${s.label.replace(/'/g, "\\'")}')"><i class="fas fa-trash" style="color:#ef4444"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function showAddShiftModal(shift = null) {
+    showModal(shift ? 'Edit Shift' : 'Add Shift', `
+        <div class="form-group">
+            <label>Label</label>
+            <input type="text" id="shift-label" value="${shift ? shift.label : ''}" placeholder="e.g. 10-7">
+        </div>
+        <div class="form-group">
+            <label>Start Time</label>
+            <input type="time" id="shift-start" value="${shift ? (shift.start_time || '') : ''}">
+        </div>
+        <div class="form-group">
+            <label>End Time</label>
+            <input type="time" id="shift-end" value="${shift ? (shift.end_time || '') : ''}">
+        </div>
+    `, `
+        <button class="btn btn-outline" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveShift(${shift ? shift.id : 'null'})">${shift ? 'Update' : 'Add'}</button>
+    `);
+}
+
+async function saveShift(id) {
+    const label = document.getElementById('shift-label').value.trim();
+    const start = document.getElementById('shift-start').value;
+    const end = document.getElementById('shift-end').value;
+    if (!label) return toast('Label is required');
+
+    const body = {label, start_time: start, end_time: end};
+    const res = id
+        ? await api('/api/shift/' + id + '/update', {method: 'POST', body})
+        : await api('/api/shift/add', {method: 'POST', body: {...body, is_active: true}});
+
+    if (res && res.success === false) return toast(res.error || 'Could not save shift');
+    hideModal();
+    toast(id ? 'Shift updated' : 'Shift added');
+    loadShiftsPage();
+}
+
+function editShift(id) {
+    const shift = allShifts.find(s => s.id === id);
+    if (shift) showAddShiftModal(shift);
+}
+
+async function deleteShift(id, label) {
+    if (!confirm(`Delete shift "${label}"?`)) return;
+    await api('/api/shift/' + id + '/delete', {method: 'DELETE'});
+    toast('Shift deleted');
+    loadShiftsPage();
+}
+
+// ---- Settings ----
+async function loadSettingsPage() {
+    try {
+        const [staff, locs, shifts, scheds, info, settings] = await Promise.all([
+            api('/api/staff'), api('/api/locations'), api('/api/shifts'), api('/api/schedules'),
+            api('/api/admin/info'), api('/api/settings')
+        ]);
+        document.getElementById('settings-counts').textContent =
+            `Currently saved: ${staff.length} staff, ${locs.length} locations, ${shifts.length} shifts, ${scheds.length} schedules.`;
+        const kb = info && info.size ? ` (${Math.max(1, Math.round(info.size/1024))} KB)` : '';
+        document.getElementById('settings-location').textContent =
+            info && info.db_path ? `Saved on this Mac at: ${info.db_path}${kb}` : '';
+        document.getElementById('settings-version').textContent =
+            'Version ' + ((info && info.version) || '?');
+        document.getElementById('business-name-input').value =
+            (settings && settings.business_name) || '';
+    } catch (e) {
+        document.getElementById('settings-counts').textContent = '';
+    }
+}
+
+// ---- Branding (custom app name) ----
+function applyBusinessName(name) {
+    name = (name || 'Finland Optical').trim() || 'Finland Optical';
+    const el = document.getElementById('brand-name');
+    if (el) el.textContent = name;
+    document.title = name + ' - Schedule Manager';
+}
+
+async function loadBranding() {
+    try {
+        const s = await api('/api/settings');
+        applyBusinessName(s && s.business_name);
+    } catch (e) { /* keep default */ }
+}
+
+async function saveBusinessName() {
+    const name = document.getElementById('business-name-input').value.trim();
+    const res = await api('/api/settings', {method: 'POST', body: {business_name: name}});
+    const saved = (res && res.business_name) || name;
+    applyBusinessName(saved);
+    document.getElementById('business-name-input').value = saved;
+    toast('App name updated');
+}
+
+// ---- Auto-update ----
+let pendingUpdateUrl = '';
+
+async function checkForUpdate(manual) {
+    const status = document.getElementById('update-status');
+    if (manual && status) status.textContent = 'Checking…';
+    try {
+        const u = await api('/api/admin/check-update');
+        if (u && u.update_available) {
+            pendingUpdateUrl = u.download_url || '';
+            const txt = `A new version (${u.latest_version}) is available.` + (u.notes ? ' ' + u.notes : '');
+            document.getElementById('update-banner-text').textContent = txt;
+            document.getElementById('update-banner').style.display = 'flex';
+            if (manual && status) status.textContent = `Update available: ${u.latest_version}`;
+        } else if (manual && status) {
+            status.textContent = u && u.error ? "Couldn't check (are you online?)" : "You're up to date.";
+        }
+    } catch (e) {
+        if (manual && status) status.textContent = "Couldn't check for updates.";
+    }
+}
+
+async function downloadUpdate(btn) {
+    if (btn) { btn.disabled = true; btn.textContent = 'Downloading…'; }
+    toast('Downloading update… this can take a moment.');
+    const res = await api('/api/admin/download-update', {method: 'POST', body: {download_url: pendingUpdateUrl}});
+    if (res && res.success) {
+        document.getElementById('update-banner-text').textContent =
+            'Update downloaded. In the window that just opened, drag "Finland Schedule" onto Applications, then reopen the app.';
+        if (btn) btn.style.display = 'none';
+        toast('Downloaded — drag the app into Applications, then reopen.');
+    } else {
+        toast('Update failed: ' + ((res && res.error) || 'unknown error'));
+        if (btn) { btn.disabled = false; btn.textContent = 'Download & Install'; }
+    }
+}
+
+async function loadSampleData() {
+    if (!confirm('Load the original Finland sample data (locations, shifts, staff)?')) return;
+    const res = await api('/api/admin/load-sample', {method: 'POST'});
+    if (res && res.success === false) return toast(res.error || 'Could not load sample data');
+    toast('Sample data loaded');
+    setTimeout(() => location.reload(), 700);
+}
+
+async function clearAllData() {
+    if (!confirm('Permanently delete ALL data (staff, locations, shifts, schedules)? This cannot be undone.')) return;
+    if (!confirm('Are you absolutely sure? Everything will be erased.')) return;
+    await api('/api/admin/clear-all', {method: 'POST'});
+    toast('All data cleared');
+    setTimeout(() => location.reload(), 700);
+}
+
+// ---- Leave ----
+async function loadLeavePage() {
+    // Populate staff dropdown
+    if (allStaff.length === 0) {
+        allStaff = await api('/api/staff');
+    }
+    const sel = document.getElementById('leave-staff');
+    sel.innerHTML = '<option value="">Select staff...</option>';
+    allStaff.filter(s => s.is_active).forEach(s => {
+        sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+    });
+
+    loadLeaveTable();
+}
+
+async function loadLeaveTable() {
+    const leaves = await api('/api/leave');
+    const body = document.getElementById('leave-table-body');
+
+    if (!leaves || leaves.length === 0) {
+        body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:40px">No leave requests found.</td></tr>';
+        return;
+    }
+
+    body.innerHTML = (leaves || []).map(l => {
+        const isPending = l.status === 'pending';
+        const statusClass = l.status === 'approved' ? 'leave-status-approved' : l.status === 'rejected' ? 'leave-status-rejected' : 'leave-status-pending';
+        return `<tr>
+            <td><strong>${l.staff_name || l.staff_id}</strong></td>
+            <td>${l.start_date}</td>
+            <td>${l.end_date}</td>
+            <td><span class="badge badge-info">${l.leave_type || l.type}</span></td>
+            <td><span class="badge ${statusClass}">${l.status}</span></td>
+            <td class="actions-cell">${isPending ? `
+                <button class="btn btn-sm btn-success" onclick="approveLeave(${l.id})"><i class="fas fa-check"></i> Approve</button>
+                <button class="btn btn-sm btn-danger" onclick="rejectLeave(${l.id})"><i class="fas fa-times"></i> Reject</button>
+            ` : '-'}</td>
+        </tr>`;
+    }).join('');
+}
+
+async function submitLeave() {
+    const staffId = document.getElementById('leave-staff').value;
+    const startDate = document.getElementById('leave-start').value;
+    const endDate = document.getElementById('leave-end').value;
+    const leaveType = document.getElementById('leave-type').value;
+    const reason = document.getElementById('leave-reason').value;
+
+    if (!staffId || !startDate || !endDate) return toast('Staff, start date, and end date are required');
+
+    const res = await api('/api/leave', {method: 'POST', body: {
+        staff_id: parseInt(staffId),
+        start_date: startDate,
+        end_date: endDate,
+        leave_type: leaveType,
+        reason: reason
+    }});
+
+    if (res.error) return toast('Error: ' + res.error);
+    toast('Leave request submitted');
+    document.getElementById('leave-reason').value = '';
+    loadLeaveTable();
+}
+
+async function approveLeave(id) {
+    await api('/api/leave/' + id + '/approve', {method: 'POST'});
+    toast('Leave approved');
+    loadLeaveTable();
+}
+
+async function rejectLeave(id) {
+    await api('/api/leave/' + id + '/reject', {method: 'POST'});
+    toast('Leave rejected');
+    loadLeaveTable();
+}
+
+// ---- Dashboard ----
+function initDashboard() {
+    // Sync schedule list if needed
+    const mainSel = document.getElementById('schedule-select');
+    const dSel = document.getElementById('dashboard-schedule-select');
+    if (dSel.options.length <= 1 && mainSel.options.length > 1) {
+        dSel.innerHTML = mainSel.innerHTML;
+    }
+    // Set default fairness month to current month
+    const fm = document.getElementById('fairness-month');
+    if (!fm.value) {
+        const now = new Date();
+        fm.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    }
+
+    if (dSel.value) loadDashboard();
+}
+
+async function loadDashboard() {
+    const schedId = document.getElementById('dashboard-schedule-select').value;
+    if (!schedId) return;
+
+    try {
+        const stats = await api('/api/dashboard/stats?schedule_id=' + schedId);
+
+        document.getElementById('ds-total-hours').textContent = stats.total_hours != null ? stats.total_hours : '--';
+        document.getElementById('ds-overtime').textContent = stats.overtime_count != null ? stats.overtime_count : '--';
+        document.getElementById('ds-coverage').textContent = stats.coverage_score != null ? stats.coverage_score + '%' : '--';
+
+        // Staff hours table - use per-staff overtime threshold
+        const hoursBody = document.getElementById('dashboard-hours-body');
+        if (stats.staff_hours && stats.staff_hours.length > 0) {
+            const sorted = [...stats.staff_hours].sort((a, b) => (b.hours || 0) - (a.hours || 0));
+            hoursBody.innerHTML = sorted.map(s => {
+                // Find staff-specific max hours
+                const staffObj = allStaff.find(st => st.name === s.name || st.name === s.staff_name);
+                const maxHours = (staffObj && staffObj.overtime_max_hours) ? staffObj.overtime_max_hours : 45;
+                const isOvertime = (s.hours || 0) > maxHours;
+                return `<tr>
+                    <td><strong>${s.name || s.staff_name}</strong></td>
+                    <td style="${isOvertime ? 'color:#ef4444;font-weight:700' : ''}">${s.hours || 0}h / ${maxHours}h ${isOvertime ? '<span class="badge badge-inactive">OT</span>' : ''}</td>
+                </tr>`;
+            }).join('');
+        } else {
+            hoursBody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#9ca3af">No data available</td></tr>';
+        }
+
+        // Location coverage grid
+        if (stats.location_coverage) {
+            renderCoverageGrid(stats.location_coverage, stats.days || []);
+        }
+    } catch(e) {
+        toast('Error loading dashboard');
+    }
+
+    loadFairness();
+}
+
+function renderCoverageGrid(coverage, days) {
+    const grid = document.getElementById('coverage-grid');
+    if (!coverage || coverage.length === 0) {
+        grid.innerHTML = '<p style="color:#9ca3af;font-size:13px">No coverage data available.</p>';
+        return;
+    }
+
+    let html = '<table class="data-table"><thead><tr><th>Location</th>';
+    const dayLabels = days.length > 0 ? days : ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
+    dayLabels.forEach(d => html += `<th>${d}</th>`);
+    html += '</tr></thead><tbody>';
+
+    coverage.forEach(loc => {
+        html += `<tr><td><strong>${loc.name}</strong></td>`;
+        const minStaff = loc.min_staff || 1;
+        for (let i = 0; i < 7; i++) {
+            const count = loc.days && loc.days[String(i)] != null ? loc.days[String(i)] : (loc.counts ? loc.counts[i] : 0);
+            const ok = count >= minStaff;
+            html += `<td><span class="coverage-cell ${ok ? 'coverage-ok' : 'coverage-low'}">${count}</span></td>`;
+        }
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    grid.innerHTML = html;
+}
+
+async function loadFairness() {
+    const month = document.getElementById('fairness-month').value;
+    if (!month) return;
+
+    try {
+        const data = await api('/api/fairness?period=' + month);
+        const entries = data.report || data.staff || data || [];
+        const body = document.getElementById('fairness-body');
+
+        if (!Array.isArray(entries) || entries.length === 0) {
+            body.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af">No fairness data available for this period.</td></tr>';
+            return;
+        }
+
+        // Find max values for bars
+        const maxFridays = Math.max(...entries.map(e => e.fridays_worked || 0), 1);
+        const maxWeekends = Math.max(...entries.map(e => e.weekends_worked || 0), 1);
+        const maxOff = Math.max(...entries.map(e => e.off_days || 0), 1);
+
+        body.innerHTML = entries.map(e => `<tr>
+            <td><strong>${e.name || e.staff_name}</strong></td>
+            <td>
+                ${e.fridays_worked || 0}
+                <div class="fairness-bar"><div class="fairness-bar-fill" style="width:${((e.fridays_worked || 0) / maxFridays) * 100}%;background:#f59e0b"></div></div>
+            </td>
+            <td>
+                ${e.weekends_worked || 0}
+                <div class="fairness-bar"><div class="fairness-bar-fill" style="width:${((e.weekends_worked || 0) / maxWeekends) * 100}%;background:#6366f1"></div></div>
+            </td>
+            <td>
+                ${e.off_days || 0}
+                <div class="fairness-bar"><div class="fairness-bar-fill" style="width:${((e.off_days || 0) / maxOff) * 100}%;background:#10b981"></div></div>
+            </td>
+        </tr>`).join('');
+    } catch(e) {
+        document.getElementById('fairness-body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#9ca3af">Error loading fairness data.</td></tr>';
+    }
+}
+
+// ---- Reports & Analytics ----
+function initReportsPage() {
+    const rm = document.getElementById('report-month');
+    if (!rm.value) {
+        const now = new Date();
+        rm.value = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    }
+}
+
+async function loadMonthlyReport() {
+    const month = document.getElementById('report-month').value;
+    if (!month) return toast('Please select a month');
+
+    toast('Loading report...');
+    const body = document.getElementById('report-table-body');
+
+    try {
+        const data = await api('/api/reports/monthly?month=' + month);
+        const entries = Array.isArray(data) ? data : (data.report || data.data || []);
+
+        if (!entries || entries.length === 0) {
+            body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px">No report data available for this month.</td></tr>';
+            return;
+        }
+
+        // Find max hours for bars
+        const maxHours = Math.max(...entries.map(e => e.total_hours || 0), 1);
+
+        // Build rows
+        let html = entries.map(e => {
+            const tag = e.staff_tag || 'Regular';
+            const tagClass = tag === 'Senior' ? 'badge-tag-senior' : tag === 'Trainee' ? 'badge-tag-trainee' : 'badge-tag-regular';
+            const pct = ((e.total_hours || 0) / maxHours) * 100;
+            return `<tr>
+                <td><strong>${e.staff_name || '--'}</strong></td>
+                <td><span class="badge ${tagClass}">${tag}</span></td>
+                <td>${e.days_worked != null ? e.days_worked : '--'}</td>
+                <td>${e.days_off != null ? e.days_off : '--'}</td>
+                <td>${e.days_leave != null ? e.days_leave : '--'}</td>
+                <td>
+                    ${e.total_hours != null ? e.total_hours + 'h' : '--'}
+                    <div class="hours-bar"><div class="hours-bar-fill" style="width:${pct}%"></div></div>
+                </td>
+                <td>${e.top_location || '--'}</td>
+            </tr>`;
+        }).join('');
+
+        // Summary row
+        const count = entries.length;
+        const avgWorked = (entries.reduce((s, e) => s + (e.days_worked || 0), 0) / count).toFixed(1);
+        const avgOff = (entries.reduce((s, e) => s + (e.days_off || 0), 0) / count).toFixed(1);
+        const avgLeave = (entries.reduce((s, e) => s + (e.days_leave || 0), 0) / count).toFixed(1);
+        const avgHours = (entries.reduce((s, e) => s + (e.total_hours || 0), 0) / count).toFixed(1);
+
+        html += `<tr class="report-summary-row">
+            <td>Averages (${count} staff)</td>
+            <td>--</td>
+            <td>${avgWorked}</td>
+            <td>${avgOff}</td>
+            <td>${avgLeave}</td>
+            <td>${avgHours}h</td>
+            <td>--</td>
+        </tr>`;
+
+        body.innerHTML = html;
+    } catch(e) {
+        body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:40px">Error loading report data.</td></tr>';
+    }
+}
+
+// ---- Init ----
+initDarkMode();
+loadBranding();
+loadScheduleList();
+checkForUpdate(false);
+</script>
+</body>
+</html>

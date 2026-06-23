@@ -1,0 +1,18 @@
+# Build artifacts
+build/
+dist/
+*.dmg
+
+# Python
+__pycache__/
+*.pyc
+
+# Local / private data (never publish business data)
+data/
+New Schedule.xlsx
+imported_schedule.pdf
+test_schedule.pdf
+
+# Tooling / OS
+.claude-flow/
+.DS_Store
