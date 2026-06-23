@@ -7,8 +7,12 @@ and the user won't hit the "unidentified developer / damaged" Gatekeeper wall.
 """
 
 import os
+import sys
 import json
 import ssl
+import shlex
+import shutil
+import tempfile
 import subprocess
 import urllib.request
 
@@ -72,16 +76,70 @@ def check_for_update():
     return result
 
 
-def download_and_open(download_url, timeout=120):
-    """Download the new .dmg via Python (no quarantine) and open it in Finder."""
+def _running_app_bundle():
+    """Path to the .app we're running from (…/X.app), or None."""
+    p = sys.executable  # …/X.app/Contents/MacOS/X
+    for _ in range(3):
+        p = os.path.dirname(p)
+    return p if p.endswith(".app") else None
+
+
+def _install_target():
+    """Where to install the update: replace where we run, else /Applications."""
+    bundle = _running_app_bundle()
+    if bundle and "AppTranslocation" not in bundle and os.path.isdir(bundle):
+        return bundle
+    return "/Applications/Finland Schedule.app"
+
+
+def download_and_install(download_url, timeout=180):
+    """Download the update and replace the installed app IN PLACE, then relaunch.
+
+    Downloads via Python (no quarantine), mounts the .dmg hidden (-nobrowse so no
+    desktop disk icon), then a detached helper waits for the app to quit, swaps the
+    bundle, cleans up, and reopens — so there is never a second copy.
+    """
     if not download_url:
         raise ValueError("No download URL")
-    dest_dir = os.path.expanduser("~/Downloads")
-    os.makedirs(dest_dir, exist_ok=True)
-    dest = os.path.join(dest_dir, "Finland Schedule Update.dmg")
+    tmpdir = tempfile.mkdtemp(prefix="fs_update_")
+    dmg = os.path.join(tmpdir, "update.dmg")
     req = urllib.request.Request(download_url, headers={"User-Agent": "FinlandSchedule"})
-    with urllib.request.urlopen(req, timeout=timeout, context=_ssl_context()) as resp, open(dest, "wb") as f:
-        f.write(resp.read())
-    # Open the .dmg so the user can drag the new app into Applications.
-    subprocess.run(["open", dest], check=False)
-    return dest
+    with urllib.request.urlopen(req, timeout=timeout, context=_ssl_context()) as resp, open(dmg, "wb") as f:
+        shutil.copyfileobj(resp, f)
+
+    mountpoint = os.path.join(tmpdir, "mnt")
+    os.makedirs(mountpoint, exist_ok=True)
+    subprocess.run(["hdiutil", "attach", dmg, "-nobrowse", "-mountpoint", mountpoint],
+                   check=True, capture_output=True)
+
+    new_app = None
+    for name in os.listdir(mountpoint):
+        if name.endswith(".app"):
+            new_app = os.path.join(mountpoint, name)
+            break
+    if not new_app:
+        subprocess.run(["hdiutil", "detach", mountpoint, "-force"], capture_output=True)
+        raise RuntimeError("No application found in the update")
+
+    target = _install_target()
+    helper = os.path.join(tmpdir, "install.sh")
+    script = (
+        "#!/bin/bash\n"
+        "sleep 2\n"
+        "pkill -f 'Finland Schedule.app/Contents/MacOS' 2>/dev/null\n"
+        "sleep 2\n"
+        f"if ditto {shlex.quote(new_app)} {shlex.quote(target + '.new')} ; then\n"
+        f"  rm -rf {shlex.quote(target)}\n"
+        f"  mv {shlex.quote(target + '.new')} {shlex.quote(target)}\n"
+        f"  xattr -dr com.apple.quarantine {shlex.quote(target)} 2>/dev/null\n"
+        "fi\n"
+        f"hdiutil detach {shlex.quote(mountpoint)} -force 2>/dev/null\n"
+        f"rm -f {shlex.quote(dmg)} 2>/dev/null\n"
+        f"open {shlex.quote(target)}\n"
+    )
+    with open(helper, "w") as f:
+        f.write(script)
+    os.chmod(helper, 0o755)
+    subprocess.Popen(["/bin/bash", helper], start_new_session=True,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return target

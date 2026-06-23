@@ -1,0 +1,15 @@
+[     624ms] ReferenceError: updateLegend is not defined
+    at loadScheduleList (http://127.0.0.1:5050/:1493:5)
+[     724ms] [ERROR] Failed to load resource: the server responded with a status of 404 (NOT FOUND) @ http://127.0.0.1:5050/favicon.ico:0
+[    3983ms] ReferenceError: updateLegend is not defined
+    at loadLocations (http://127.0.0.1:5050/:2553:5)
+[   27036ms] ReferenceError: updateLegend is not defined
+    at loadLocations (http://127.0.0.1:5050/:2553:5)
+[   27948ms] ReferenceError: updateLegend is not defined
+    at loadShiftsPage (http://127.0.0.1:5050/:2629:5)
+[   28337ms] ReferenceError: updateLegend is not defined
+    at loadLocations (http://127.0.0.1:5050/:2553:5)
+[   43850ms] ReferenceError: updateLegend is not defined
+    at loadShiftsPage (http://127.0.0.1:5050/:2629:5)
+[  149955ms] ReferenceError: updateLegend is not defined
+    at loadLocations (http://127.0.0.1:5050/:2553:5)

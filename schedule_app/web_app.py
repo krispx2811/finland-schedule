@@ -466,7 +466,7 @@ def api_download_update():
         # fall back to whatever the manifest currently advertises
         url = updater.check_for_update().get("download_url", "")
     try:
-        path = updater.download_and_open(url)
+        path = updater.download_and_install(url)
         return jsonify({"success": True, "path": path})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 400

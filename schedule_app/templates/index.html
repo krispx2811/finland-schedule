@@ -1636,6 +1636,68 @@ function setView(view) {
     }
 }
 
+// ---- Dynamic times + per-location colors (everything derives from your data) ----
+function to12h(hhmm) {
+    if (!hhmm) return '';
+    const parts = String(hhmm).split(':');
+    let h = parseInt(parts[0], 10) || 0;
+    const m = (parts[1] || '00').padStart(2, '0');
+    const ap = h >= 12 ? 'PM' : 'AM';
+    let h12 = h % 12; if (h12 === 0) h12 = 12;
+    return `${h12}:${m} ${ap}`;
+}
+
+function shiftBounds() {
+    const shifts = (allShifts || []).filter(s => s.start_time && s.end_time);
+    if (!shifts.length) return null;
+    let open = null, closeVal = null;
+    shifts.forEach(s => {
+        if (open === null || s.start_time < open) open = s.start_time;
+        const end = s.end_time === '00:00' ? '24:00' : s.end_time;  // midnight = latest
+        if (closeVal === null || end > closeVal) closeVal = end;
+    });
+    return { open: to12h(open), close: closeVal === '24:00' ? '12:00 AM' : to12h(closeVal) };
+}
+
+const LOC_PALETTE = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#14b8a6','#f97316','#84cc16','#06b6d4','#a855f7','#eab308','#3b82f6'];
+let locColorMap = {};
+function rebuildLocColors() {
+    locColorMap = {};
+    (allLocations || []).forEach((l, i) => {
+        const c = LOC_PALETTE[i % LOC_PALETTE.length];
+        if (l.short_code) locColorMap[String(l.short_code).toUpperCase()] = c;
+        if (l.name) locColorMap[String(l.name).toUpperCase()] = c;
+    });
+}
+function textOn(bg) {
+    const h = bg.replace('#', '');
+    const r = parseInt(h.substr(0,2),16), g = parseInt(h.substr(2,2),16), b = parseInt(h.substr(4,2),16);
+    return (0.299*r + 0.587*g + 0.114*b) > 150 ? '#1f2937' : '#fff';
+}
+function getCellStyle(d) {
+    if (!d || d.status === 'off' || d.status === 'leave') return '';
+    const c = locColorMap[String(d.location || '').toUpperCase()];
+    return c ? `background:${c};color:${textOn(c)}` : '';
+}
+
+function updateLegend() {
+    const el = document.getElementById('color-legend');
+    if (!el) return;
+    rebuildLocColors();
+    let h = '';
+    (allLocations || []).forEach((l, i) => {
+        const c = LOC_PALETTE[i % LOC_PALETTE.length];
+        h += `<div class="legend-item"><div class="legend-swatch" style="background:${c}"></div>${l.name}</div>`;
+    });
+    h += `<div class="legend-item"><div class="legend-swatch" style="background:#e5e7eb"></div>OFF</div>`;
+    h += `<div class="legend-item"><div class="legend-swatch" style="background:#fef3c7"></div>Leave</div>`;
+    const b = shiftBounds();
+    h += `<div style="margin-left:auto;font-size:11px;color:#6b7280;display:flex;gap:12px">`;
+    if (b) h += `<span><i class="fas fa-clock" style="color:var(--accent)"></i> Open: ${b.open}</span><span><i class="fas fa-moon" style="color:var(--accent)"></i> Close: ${b.close}</span>`;
+    h += `</div>`;
+    el.innerHTML = h;
+}
+
 async function loadTimingsView() {
     const data = await api('/api/schedule/' + currentScheduleId + '/by-location');
     const days = data.days || ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
@@ -2809,9 +2871,9 @@ async function downloadUpdate(btn) {
     const res = await api('/api/admin/download-update', {method: 'POST', body: {download_url: pendingUpdateUrl}});
     if (res && res.success) {
         document.getElementById('update-banner-text').textContent =
-            'Update downloaded. In the window that just opened, drag "Finland Schedule" onto Applications, then reopen the app.';
+            'Installing update… the app will close and reopen by itself in a few seconds. Please wait.';
         if (btn) btn.style.display = 'none';
-        toast('Downloaded — drag the app into Applications, then reopen.');
+        toast('Installing update… the app will reopen automatically.');
     } else {
         toast('Update failed: ' + ((res && res.error) || 'unknown error'));
         if (btn) { btn.disabled = false; btn.textContent = 'Download & Install'; }
