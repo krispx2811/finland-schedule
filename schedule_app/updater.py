@@ -134,21 +134,31 @@ def download_and_install(download_url, timeout=180):
         raise RuntimeError("No application found in the update")
 
     target = _install_target()
+    q_new = shlex.quote(new_app)
+    q_tgt = shlex.quote(target)
+    q_tgtnew = shlex.quote(target + ".new")
+    q_mount = shlex.quote(mountpoint)
+    q_dmg = shlex.quote(dmg)
     helper = os.path.join(tmpdir, "install.sh")
-    script = (
-        "#!/bin/bash\n"
-        "sleep 2\n"
-        "pkill -f 'Finland Schedule.app/Contents/MacOS' 2>/dev/null\n"
-        "sleep 2\n"
-        f"if ditto {shlex.quote(new_app)} {shlex.quote(target + '.new')} ; then\n"
-        f"  rm -rf {shlex.quote(target)}\n"
-        f"  mv {shlex.quote(target + '.new')} {shlex.quote(target)}\n"
-        f"  xattr -dr com.apple.quarantine {shlex.quote(target)} 2>/dev/null\n"
-        "fi\n"
-        f"hdiutil detach {shlex.quote(mountpoint)} -force 2>/dev/null\n"
-        f"rm -f {shlex.quote(dmg)} 2>/dev/null\n"
-        f"open {shlex.quote(target)}\n"
-    )
+    script = f"""#!/bin/bash
+sleep 1
+# Quit the running app; wait until it has fully exited, then force-kill if needed.
+pkill -f 'Finland Schedule.app/Contents/MacOS' 2>/dev/null
+for i in $(seq 1 30); do pgrep -f 'Finland Schedule.app/Contents/MacOS' >/dev/null || break; sleep 0.5; done
+pkill -9 -f 'Finland Schedule.app/Contents/MacOS' 2>/dev/null
+sleep 1
+# Swap in the new app bundle (staged copy first, so a failure can't delete the app).
+if ditto {q_new} {q_tgtnew} ; then
+  rm -rf {q_tgt}
+  mv {q_tgtnew} {q_tgt}
+  xattr -dr com.apple.quarantine {q_tgt} 2>/dev/null
+fi
+hdiutil detach {q_mount} -force 2>/dev/null
+rm -f {q_dmg} 2>/dev/null
+# Wait for the server port to be released before relaunching, then retry once.
+for i in $(seq 1 40); do lsof -nP -iTCP:5050 -sTCP:LISTEN >/dev/null 2>&1 || break; sleep 0.5; done
+open {q_tgt} || (sleep 3; open {q_tgt})
+"""
     with open(helper, "w") as f:
         f.write(script)
     os.chmod(helper, 0o755)
