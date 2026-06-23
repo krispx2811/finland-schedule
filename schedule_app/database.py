@@ -848,6 +848,18 @@ def get_fairness_for_scheduler():
     return dict(stats)
 
 
+def get_weekend_work_counts():
+    """How many Friday/Saturday shifts each staff member has actually worked,
+    across all schedules — used to rotate the weekend salesman fairly."""
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT staff_id, COUNT(*) AS c FROM assignments "
+        "WHERE status='assigned' AND day_of_week IN (0, 6) GROUP BY staff_id"
+    ).fetchall()
+    conn.close()
+    return {r["staff_id"]: r["c"] for r in rows}
+
+
 # ===================== DASHBOARD STATS =====================
 
 def get_dashboard_stats(schedule_id):

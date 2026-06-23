@@ -77,9 +77,11 @@ def generate_schedule(week_start_str, notes="", use_fairness=True):
                or loc_by_code.get(s.default_location or s.default_role))
         return loc.id if loc else None
 
-    # Salesmen who can cover the weekend (Sat/Fri), rotated so it isn't always the same person.
+    # Salesmen who can cover the weekend (Sat/Fri). Pick the one who has worked the
+    # FEWEST weekend shifts so far, so it rotates fairly and never doubles up.
     salesmen = [s for s in staff_list if (s.staff_tag or "").strip().lower() == "salesman"]
-    random.shuffle(salesmen)
+    random.shuffle(salesmen)  # random tie-break among equally-loaded salesmen
+    weekend_load = db.get_weekend_work_counts()
 
     # Optional fixed shift for the Friday salesman (set in Settings → Scheduling).
     shift_by_label = {s.label: s for s in shifts}
@@ -92,7 +94,10 @@ def generate_schedule(week_start_str, notes="", use_fairness=True):
         if day_idx in WEEKEND_DAYS:
             avail = [s for s in salesmen
                      if s.id not in leave_by_day[day_idx] and s.id not in unavailable_by_day[day_idx]]
-            chosen = avail[WEEKEND_DAYS.index(day_idx) % len(avail)] if avail else None
+            chosen = min(avail, key=lambda s: weekend_load.get(s.id, 0)) if avail else None
+            if chosen:
+                # count it now so the other weekend day picks a different salesman
+                weekend_load[chosen.id] = weekend_load.get(chosen.id, 0) + 1
             for s in staff_list:
                 if s.id in leave_by_day[day_idx]:
                     db.add_assignment(schedule_id, s.id, day_idx, date, "leave")
