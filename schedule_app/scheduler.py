@@ -81,6 +81,10 @@ def generate_schedule(week_start_str, notes="", use_fairness=True):
     salesmen = [s for s in staff_list if (s.staff_tag or "").strip().lower() == "salesman"]
     random.shuffle(salesmen)
 
+    # Optional fixed shift for the Friday salesman (set in Settings → Scheduling).
+    shift_by_label = {s.label: s for s in shifts}
+    friday_shift = shift_by_label.get((db.get_setting("friday_shift", "") or "").strip())
+
     for day_idx in range(7):
         date = dates[day_idx]
 
@@ -94,7 +98,9 @@ def generate_schedule(week_start_str, notes="", use_fairness=True):
                     db.add_assignment(schedule_id, s.id, day_idx, date, "leave")
                 elif chosen and s.id == chosen.id:
                     loc_id = fixed_loc_id(s) or (rotation_locations[0].id if rotation_locations else None)
-                    db.add_assignment(schedule_id, s.id, day_idx, date, "assigned", loc_id, shift_id_for(s))
+                    # Friday uses the configured Friday shift (if set); Saturday uses preference.
+                    wsid = friday_shift.id if (day_idx == 6 and friday_shift) else shift_id_for(s)
+                    db.add_assignment(schedule_id, s.id, day_idx, date, "assigned", loc_id, wsid)
                 else:
                     db.add_assignment(schedule_id, s.id, day_idx, date, "off")
             continue

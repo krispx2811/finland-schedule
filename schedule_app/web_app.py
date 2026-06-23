@@ -448,6 +448,7 @@ def _current_settings():
     return {
         "business_name": db.get_setting("business_name", DEFAULT_BUSINESS_NAME),
         "accent_color": db.get_setting("accent_color", DEFAULT_ACCENT),
+        "friday_shift": db.get_setting("friday_shift", ""),
     }
 
 
@@ -486,6 +487,8 @@ def api_set_settings():
     if "accent_color" in data:
         color = (data.get("accent_color") or "").strip() or DEFAULT_ACCENT
         db.set_setting("accent_color", color)
+    if "friday_shift" in data:
+        db.set_setting("friday_shift", (data.get("friday_shift") or "").strip())
     result = {"success": True}
     result.update(_current_settings())
     return jsonify(result)

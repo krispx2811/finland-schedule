@@ -1157,6 +1157,18 @@
             </div>
 
             <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
+                <h3 style="margin-bottom:6px">Scheduling</h3>
+                <p style="font-size:13px;color:var(--muted);margin-bottom:16px">On Friday &amp; Saturday only one Salesman works (everyone else off). You can fix the Friday salesman's shift here. To add a new shift time, use the Shifts page first.</p>
+                <div style="display:flex;gap:12px;align-items:flex-end">
+                    <div class="form-group" style="flex:1;margin:0">
+                        <label>Friday shift</label>
+                        <select id="friday-shift-select"></select>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveFridayShift()"><i class="fas fa-save"></i> Save</button>
+                </div>
+            </div>
+
+            <div class="card" style="padding:24px;max-width:640px;margin-bottom:20px">
                 <h3 style="margin-bottom:6px">Theme color</h3>
                 <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Pick a color for buttons, highlights and icons. Pick a preset or choose your own.</p>
                 <div id="color-presets" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
@@ -2779,6 +2791,21 @@ async function loadSettingsPage() {
         const picker = document.getElementById('accent-picker');
         if (picker) picker.value = acc;
         renderColorPresets(acc);
+
+        // Friday shift dropdown (from the user's shifts)
+        const fsSel = document.getElementById('friday-shift-select');
+        if (fsSel) {
+            const cur = (settings && settings.friday_shift) || '';
+            let opts = `<option value="">Use staff preference</option>`;
+            (shifts || []).forEach(sh => {
+                const t = (sh.start_time && sh.end_time) ? ` (${sh.start_time}–${sh.end_time})` : '';
+                opts += `<option value="${sh.label.replace(/"/g, '&quot;')}" ${cur === sh.label ? 'selected' : ''}>${sh.label}${t}</option>`;
+            });
+            if (cur && !(shifts || []).some(s => s.label === cur)) {
+                opts += `<option value="${cur.replace(/"/g, '&quot;')}" selected>${cur}</option>`;
+            }
+            fsSel.innerHTML = opts;
+        }
     } catch (e) { /* leave defaults */ }
 
     // Auto-check for updates so the status shows without the user clicking.
@@ -2838,6 +2865,12 @@ async function saveBusinessName() {
     applyBusinessName(saved);
     document.getElementById('business-name-input').value = saved;
     toast('App name updated');
+}
+
+async function saveFridayShift() {
+    const val = document.getElementById('friday-shift-select').value;
+    await api('/api/settings', {method: 'POST', body: {friday_shift: val}});
+    toast(val ? ('Friday shift set to ' + val) : 'Friday now uses staff preference');
 }
 
 // ---- Auto-update ----
