@@ -2707,23 +2707,28 @@ async function deleteShift(id, label) {
 
 // ---- Settings ----
 async function loadSettingsPage() {
+    // Version + save location first, so they always show even if other calls fail.
     try {
-        const [staff, locs, shifts, scheds, info, settings] = await Promise.all([
-            api('/api/staff'), api('/api/locations'), api('/api/shifts'), api('/api/schedules'),
-            api('/api/admin/info'), api('/api/settings')
+        const info = await api('/api/admin/info');
+        document.getElementById('settings-version').textContent =
+            'Version ' + ((info && info.version) || '?');
+        const kb = info && info.size ? ` (${Math.max(1, Math.round(info.size / 1024))} KB)` : '';
+        document.getElementById('settings-location').textContent =
+            info && info.db_path ? `Saved on this Mac at: ${info.db_path}${kb}` : '';
+    } catch (e) { /* leave defaults */ }
+
+    try {
+        const [staff, locs, shifts, scheds, settings] = await Promise.all([
+            api('/api/staff'), api('/api/locations'), api('/api/shifts'), api('/api/schedules'), api('/api/settings')
         ]);
         document.getElementById('settings-counts').textContent =
             `Currently saved: ${staff.length} staff, ${locs.length} locations, ${shifts.length} shifts, ${scheds.length} schedules.`;
-        const kb = info && info.size ? ` (${Math.max(1, Math.round(info.size/1024))} KB)` : '';
-        document.getElementById('settings-location').textContent =
-            info && info.db_path ? `Saved on this Mac at: ${info.db_path}${kb}` : '';
-        document.getElementById('settings-version').textContent =
-            'Version ' + ((info && info.version) || '?');
         document.getElementById('business-name-input').value =
             (settings && settings.business_name) || '';
-    } catch (e) {
-        document.getElementById('settings-counts').textContent = '';
-    }
+    } catch (e) { /* leave defaults */ }
+
+    // Auto-check for updates so the status shows without the user clicking.
+    checkForUpdate(true);
 }
 
 // ---- Branding (custom app name) ----
@@ -2753,22 +2758,24 @@ async function saveBusinessName() {
 // ---- Auto-update ----
 let pendingUpdateUrl = '';
 
-async function checkForUpdate(manual) {
+async function checkForUpdate(showProgress) {
     const status = document.getElementById('update-status');
-    if (manual && status) status.textContent = 'Checking…';
-    try {
-        const u = await api('/api/admin/check-update');
-        if (u && u.update_available) {
-            pendingUpdateUrl = u.download_url || '';
-            const txt = `A new version (${u.latest_version}) is available.` + (u.notes ? ' ' + u.notes : '');
-            document.getElementById('update-banner-text').textContent = txt;
-            document.getElementById('update-banner').style.display = 'flex';
-            if (manual && status) status.textContent = `Update available: ${u.latest_version}`;
-        } else if (manual && status) {
-            status.textContent = u && u.error ? "Couldn't check (are you online?)" : "You're up to date.";
-        }
-    } catch (e) {
-        if (manual && status) status.textContent = "Couldn't check for updates.";
+    if (showProgress && status) status.textContent = 'Checking…';
+    let u = null;
+    try { u = await api('/api/admin/check-update'); } catch (e) { u = null; }
+
+    if (u && u.update_available) {
+        pendingUpdateUrl = u.download_url || '';
+        document.getElementById('update-banner-text').textContent =
+            `A new version (${u.latest_version}) is available.` + (u.notes ? ' ' + u.notes : '');
+        document.getElementById('update-banner').style.display = 'flex';
+        if (status) status.textContent = `Update available: ${u.latest_version} — see the banner at the top.`;
+    } else if (u && !u.error) {
+        // Reached GitHub successfully and there's nothing newer.
+        if (status) status.textContent = `✓ You're on the latest version (${u.current_version || ''}).`;
+    } else if (showProgress && status) {
+        // Could not reach GitHub (offline / blocked) — not an error in the app.
+        status.textContent = "Couldn't reach the update server — you may be offline. Your app is fine; try again later.";
     }
 }
 

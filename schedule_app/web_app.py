@@ -31,6 +31,14 @@ app = Flask(__name__,
             static_folder=get_resource_path("static"))
 
 
+@app.after_request
+def add_no_cache_headers(resp):
+    # Never let the browser serve a stale page after an app update.
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
+
+
 @app.route("/")
 def index():
     return render_template("index.html", app_name=APP_NAME)
