@@ -1,7 +1,7 @@
 """Application constants and configuration."""
 
 APP_NAME = "Finland Optical Center - Schedule Manager"
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 # Auto-update: the app checks this file on GitHub for a newer version.
 UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/krispx2811/finland-schedule/main/version.json"
